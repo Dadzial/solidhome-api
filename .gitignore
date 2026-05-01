@@ -1,0 +1,45 @@
+# IDE / Editor
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Environment
+backend/api/.env
+backend/api/.env.local
+backend/api/.env.*.local
+
+# Node modules
+node_modules/
+backend/api/node_modules/
+
+# Build output
+backend/api/dist/
+backend/api/build/
+backend/api/out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+backend/api/logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+backend/api/coverage/
+.nyc_output/
+
+# Misc caches
+.cache/
+.parcel-cache/
+.sass-cache/
+.vagrant/
+
+pids/
+*.pid
+*.seed
+*.pid.lock
