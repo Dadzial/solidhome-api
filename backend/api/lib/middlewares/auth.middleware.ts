@@ -1,0 +1,1 @@
+//TODO : auth middleware to check if the user is authenticated before accessing certain routes
