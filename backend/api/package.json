@@ -1,0 +1,35 @@
+{
+  "name": "solid-home-api",
+  "version": "1.0.0",
+  "description": "Api for SmartHome",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "nodemon",
+    "dev": "ts-node ./lib/index.ts",
+    "build": "tsc"
+  },
+  "author": "Dadzial",
+  "license": "ISC",
+  "dependencies": {
+    "express": "4.22.1",
+    "typescript": "5.1.6",
+    "ts-node": "10.9.1",
+    "morgan": "^1.10.1",
+    "cors": "2.8.5",
+    "dotenv": "16.3.1",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "2.0.22",
+    "@types/express": "4.17.17",
+    "@types/node": "20.5.1",
+    "@types/morgan": "1.9.4",
+    "@types/cors": "2.8.13",
+    "@types/dotenv": "8.2.0",
+    "@types/winston": "2.4.4"
+  }
+}

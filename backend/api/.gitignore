@@ -1,0 +1,49 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node modules
+/node_modules/
+
+# Build output
+/dist/
+/build/
+/out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Misc caches
+.cache/
+.parcel-cache/
+.sass-cache/
+.vagrant/
+
+
+pids/
+*.pid
+*.seed
+*.pid.lock
