@@ -1,4 +1,5 @@
 import {config} from "./config";
+import logger from "./utils/logger";
 import express from "express"
 import http from "http"
 
@@ -14,7 +15,7 @@ class App {
 
     public listen() {
         this.server.listen(config.port, () => {
-            console.log(`Server listening on ${config.port}`);
+            logger.info(`Server listening on ${config.port}`);
         })
     }
 }
