@@ -20,8 +20,10 @@ class LightsController implements Controller {
     private getLightStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try{
             res.status(200).json(this.lightStatus);
+            logger.info(`Status is received`);
         }catch(err){
             res.status(500).json(err);
+            logger.error(err.message);
         }
     }
 
@@ -29,10 +31,11 @@ class LightsController implements Controller {
         try {
             const data = req.body;
             this.lightStatus = { ...this.lightStatus, ...data };
-            console.log("Status now:", this.lightStatus);
+            logger.info(`Status is received`);
             res.status(200).json({ message: "Status updated" });
         } catch (error) {
             next(error);
+            logger.error(error.message);
         }
     }
 
