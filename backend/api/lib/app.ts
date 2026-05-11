@@ -3,6 +3,9 @@ import logger from "./utils/logger";
 import express from "express"
 import mongoose from "mongoose";
 import http from "http"
+import morgan from "morgan";
+import bodyParser from "body-parser";
+
 
 class App {
 
@@ -11,8 +14,16 @@ class App {
 
     constructor() {
         this.app = express();
+        this.initializeMiddlewares();
         this.server = http.createServer(this.app);
         this.connectToDatabase();
+    }
+
+    private initializeMiddlewares(): void {
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
+        this.app.use(bodyParser.json());
+        this.app.use(morgan('dev'));
     }
 
     private async connectToDatabase(): Promise<void> {
