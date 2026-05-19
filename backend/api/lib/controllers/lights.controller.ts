@@ -1,7 +1,7 @@
-import Controller from 'interfaces/controller.interface'
+import Controller from '../interfaces/controller.interface'
 import {NextFunction, Router,Request,Response} from "express";
 import joi from 'joi';
-import logger from 'utils/logger';
+import logger from '../utils/logger';
 import Joi from "joi";
 
 class LightsController implements Controller {
