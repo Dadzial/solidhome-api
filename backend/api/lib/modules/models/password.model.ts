@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 
 export interface IPassword {
-    userId: Types.ObjectId | string;
+    userId: Types.ObjectId;
     password: string;
 }

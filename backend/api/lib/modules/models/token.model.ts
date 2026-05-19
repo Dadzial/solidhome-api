@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 
 export interface IToken {
-    userId: Types.ObjectId | string;
+    userId: Types.ObjectId;
     createDate: number;
     type: string;
     value: string;

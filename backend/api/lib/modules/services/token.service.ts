@@ -2,13 +2,14 @@ import jwt from 'jsonwebtoken';
 import  TokenModel  from '../schemas/token.schema';
 import logger from "../../utils/logger";
 import {config} from '../../config';
+import { Types } from 'mongoose';
 
 class TokenService {
-    public async create(user: any) {
+    public async create(userId: Types.ObjectId, email: string) {
         const access = 'auth';
         const userData = {
-            userId: user.id,
-            name: user.email,
+            userId: userId.toString(),
+            name: email,
             access: access
         };
 
@@ -21,7 +22,7 @@ class TokenService {
 
         try {
             const result = await new TokenModel({
-                userId: user.id,
+                userId: userId as any,
                 type: 'authorization',
                 value,
                 createDate: new Date().getTime()
@@ -30,7 +31,7 @@ class TokenService {
                 return result;
             }
         } catch (error) {
-            logger.error(`Error creating token for userId ${user.id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger.error(`Error creating token for userId ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
             throw new Error('Error creating data');
         }
     }
@@ -38,9 +39,10 @@ class TokenService {
     public getToken(token: any) {
         return {token: token.value};
     }
+
     public async remove(userId: string) {
         try {
-            const result = await TokenModel.deleteOne({ userId: userId });
+            const result = await TokenModel.deleteOne({ userId: new Types.ObjectId(userId) as any });
 
             if (result.deletedCount === 0) {
                 throw new Error('Error while removing token');

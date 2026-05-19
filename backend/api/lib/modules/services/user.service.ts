@@ -3,13 +3,16 @@ import { IUser } from "../models/user.model";
 import logger from "../../utils/logger";
 
 class UserService {
-    public async createNewOrUpdate(user: IUser) {
+    public async createNewOrUpdate(user: Partial<IUser>): Promise<IUser> {
         try {
             if (!user._id) {
                 const dataModel = new UserModel(user);
-                return await dataModel.save();
+                const result = await dataModel.save();
+                return result.toObject() as IUser;
             } else {
-                return await UserModel.findByIdAndUpdate(user._id, { $set: user }, { new: true });
+                const result = await UserModel.findByIdAndUpdate(user._id, { $set: user }, { new: true });
+                if (!result) throw new Error('User not found');
+                return result.toObject() as IUser;
             }
         } catch (error) {
             logger.error("Error creating data:",error);
@@ -17,12 +20,13 @@ class UserService {
         }
     }
 
-    public async getByEmailOrName(name:string) {
+    public async getByEmailOrName(name:string): Promise<IUser | null> {
         try {
             const result = await UserModel.findOne({ $or: [{ email: name }, { userName: name }] });
             if (result) {
-                return result;
+                return result.toObject() as IUser;
             }
+            return null;
         }catch (error) {
             logger.error("Error downloading data",error);
             throw new Error('Error downloading data');
