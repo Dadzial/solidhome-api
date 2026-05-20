@@ -5,6 +5,7 @@ import TokenService from "../modules/services/token.service";
 import {auth, AuthRequest} from "../middlewares/auth.middleware";
 import Controller from '../interfaces/controller.interface'
 import logger from '../utils/logger';
+import Joi from 'joi';
 
 class UserController implements Controller {
     path = 'api/user';
@@ -21,7 +22,20 @@ class UserController implements Controller {
     }
 
     private createNewOrUpdate = async (req: Request, res: Response, next: NextFunction) => {
-        const { email, userName, password } = req.body;
+        const schema = Joi.object({
+            email: Joi.string().email().required(),
+            userName: Joi.string().alphanum().min(3).max(30).required(),
+            password: Joi.string().min(8).required()
+        });
+
+        const { error, value } = schema.validate(req.body);
+
+        if (error) {
+            logger.error(`Validation error during user creation: ${error.message}`);
+            return res.status(400).json({ error: "Validation failed", details: error.details.map(d => d.message) });
+        }
+
+        const { email, userName, password } = value;
 
         try{
             const user = await this.userService.createNewOrUpdate({ email, userName });
@@ -39,13 +53,24 @@ class UserController implements Controller {
             return res.status(200).json(user);
 
         } catch (error) {
-            logger.error("Validation error", error);
+            logger.error("Error creating user:", error);
             return res.status(400).json({ error: "Bad request", value: error instanceof Error ? error.message : 'Unknown error' });
         }
     }
 
     private authenticate = async (req: Request, res: Response, next: NextFunction) => {
-        const {userName, password} = req.body;
+        const schema = Joi.object({
+            userName: Joi.string().required(),
+            password: Joi.string().required()
+        });
+
+        const { error, value } = schema.validate(req.body);
+
+        if (error) {
+            return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
+        }
+
+        const { userName, password } = value;
 
         try {
             const user = await this.userService.getByEmailOrName(userName);
@@ -62,7 +87,7 @@ class UserController implements Controller {
             res.status(200).json(this.tokenService.getToken(token));
 
         } catch (error) {
-            console.error(`Validation Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger.error(`Authentication Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
             return res.status(401).json({ error: "Unauthorized" });
         }
     }
