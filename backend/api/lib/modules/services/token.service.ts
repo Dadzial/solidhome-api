@@ -40,16 +40,16 @@ class TokenService {
         return {token: token.value};
     }
 
-    public async remove(userId: string) {
+    public async remove(tokenValue: string) {
         try {
-            const result = await TokenModel.deleteOne({ userId: new Types.ObjectId(userId) as any });
+            const result = await TokenModel.deleteOne({ value: tokenValue });
 
             if (result.deletedCount === 0) {
                 throw new Error('Error while removing token');
             }
             return result;
         } catch (error) {
-            logger.error(`Error removing token for userId ${userId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            logger.error(`Error removing token: ${error instanceof Error ? error.message : 'Unknown error'}`);
             throw new Error('Error while removing token');
         }
     }

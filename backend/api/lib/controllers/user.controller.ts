@@ -17,12 +17,12 @@ class UserController implements Controller {
     }
 
     private initializeRouters() {
-        this.router.post(`${this.path}/create`,createAccountLimiter, this.createNewOrUpdate);
+        this.router.post(`${this.path}/create`,createAccountLimiter, this.createNew);
         this.router.post(`${this.path}/auth`, authLimiter , this.authenticate);
         this.router.delete(`${this.path}/logout/:userId`, auth as any, this.removeHashSession);
     }
 
-    private createNewOrUpdate = async (req: Request, res: Response, next: NextFunction) => {
+    private createNew = async (req: Request, res: Response, next: NextFunction) => {
         const schema = Joi.object({
             email: Joi.string().email().required(),
             userName: Joi.string().alphanum().min(3).max(30).required(),
@@ -39,7 +39,7 @@ class UserController implements Controller {
         const { email, userName, password } = value;
 
         try{
-            const user = await this.userService.createNewOrUpdate({ email, userName });
+            const user = await this.userService.create({ email, userName });
 
             if (!user || !user._id) {
                 return res.status(400).json({ error: "Bad request" });
@@ -101,7 +101,15 @@ class UserController implements Controller {
         }
 
         try {
-            const result = await this.tokenService.remove(userId);
+            let token = req.headers['x-access-token'] || req.headers['authorization'];
+            if (token && typeof token === 'string' && token.startsWith('Bearer ')) {
+                token = token.slice(7, token.length);
+            }
+            if (!token || typeof token !== 'string') {
+                return res.status(400).json({ error: "No token provided" });
+            }
+            
+            const result = await this.tokenService.remove(token);
             logger.info("User session removed", result);
             return res.status(200).json({ message: "Logged out successfully" });
         } catch (error) {

@@ -3,19 +3,13 @@ import { IUser } from "../models/user.model";
 import logger from "../../utils/logger";
 
 class UserService {
-    public async createNewOrUpdate(user: Partial<IUser>): Promise<IUser> {
+    public async create(user: Partial<IUser>): Promise<IUser> {
         try {
-            if (!user._id) {
-                const dataModel = new UserModel(user);
-                const result = await dataModel.save();
-                return result.toObject() as IUser;
-            } else {
-                const result = await UserModel.findByIdAndUpdate(user._id, { $set: user }, { new: true });
-                if (!result) throw new Error('User not found');
-                return result.toObject() as IUser;
-            }
+            const dataModel = new UserModel(user);
+            const result = await dataModel.save();
+            return result.toObject() as IUser;
         } catch (error) {
-            logger.error("Error creating data:",error);
+            logger.error("Error creating data:", error);
             throw new Error('Error creating data');
         }
     }
