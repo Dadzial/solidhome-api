@@ -3,6 +3,7 @@ import UserService from "../modules/services/user.service";
 import PasswordService from "../modules/services/password.service";
 import TokenService from "../modules/services/token.service";
 import {auth, AuthRequest} from "../middlewares/auth.middleware";
+import {authLimiter , createAccountLimiter} from "../middlewares/rateLimiter.middleware";
 import Controller from '../interfaces/controller.interface'
 import logger from '../utils/logger';
 import Joi from 'joi';
@@ -16,8 +17,8 @@ class UserController implements Controller {
     }
 
     private initializeRouters() {
-        this.router.post(`${this.path}/create`, this.createNewOrUpdate);
-        this.router.post(`${this.path}/auth`, this.authenticate);
+        this.router.post(`${this.path}/create`,createAccountLimiter, this.createNewOrUpdate);
+        this.router.post(`${this.path}/auth`, authLimiter , this.authenticate);
         this.router.delete(`${this.path}/logout/:userId`, auth as any, this.removeHashSession);
     }
 
