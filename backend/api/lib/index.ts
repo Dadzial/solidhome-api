@@ -7,6 +7,7 @@ import PasswordService from "./modules/services/password.service";
 import EmailService from "./modules/services/email.service";
 import ResetCodeService from "./modules/services/resetCode.service";
 import Controller from "./interfaces/controller.interface";
+import LightsService from "./modules/services/lights.service";
 
 function createControllers(): Controller[] {
     const userService = new UserService();
@@ -14,9 +15,10 @@ function createControllers(): Controller[] {
     const passwordService = new PasswordService();
     const emailService = new EmailService();
     const resetCodeService = new ResetCodeService();
+    const lightsService = new LightsService();
 
     return [
-        new LightsController(),
+        new LightsController(lightsService),
         new UserController(userService, tokenService, passwordService, emailService, resetCodeService)
     ];
 }

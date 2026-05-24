@@ -2,6 +2,7 @@ import Controller from '../interfaces/controller.interface'
 import {NextFunction, Router,Response} from "express";
 import {auth, AuthRequest} from "../middlewares/auth.middleware";
 import {LightsLimiter} from "../middlewares/rateLimiter.middleware";
+import LightsService from "../modules/services/lights.service";
 import joi from 'joi';
 import logger from '../utils/logger';
 
@@ -9,9 +10,8 @@ import logger from '../utils/logger';
 class LightsController implements Controller {
     path = '/api/lights'
     router = Router()
-    private lightStatus : Record <number,number> = {}
 
-    constructor() {
+    constructor(private lightsService : LightsService) {
         this.initializeRoutes();
     }
 
@@ -22,11 +22,18 @@ class LightsController implements Controller {
 
     private getLightStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try{
-            res.status(200).json(this.lightStatus);
-            logger.info(`Status is received`);
+            const lights = await this.lightsService.getAll();
+            const statusMap: Record<number, number> = {};
+            
+            lights.forEach(light => {
+                statusMap[light.lightId] = light.state;
+            });
+
+            res.status(200).json(statusMap);
+            logger.info(`Status is received from database`);
         }catch(err){
-            res.status(500).json(err);
-            logger.error(err.message);
+            logger.error(`Error getting light status: ${err.message}`);
+            res.status(500).json({ error: "Internal server error" });
         }
     }
 
@@ -46,11 +53,12 @@ class LightsController implements Controller {
                 return;
             }
 
-            this.lightStatus = { ...this.lightStatus, ...value };
-            logger.info(`Status updated successfully`);
+            await this.lightsService.updateStatus(value, req.user.userId);
+            
+            logger.info(`Status updated successfully in database by user ${req.user.userId}`);
             res.status(200).json({ message: "Status updated" });
         } catch (error) {
-            logger.error(error.message);
+            logger.error(`Error updating light status: ${error.message}`);
             next(error);
         }
     }
