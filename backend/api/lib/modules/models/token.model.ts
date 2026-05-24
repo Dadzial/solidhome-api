@@ -5,4 +5,5 @@ export interface IToken {
     createDate: number;
     type: string;
     value: string;
+    expireAt?: Date;
 }
