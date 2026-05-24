@@ -2,7 +2,7 @@ import Controller from '../interfaces/controller.interface'
 import {NextFunction, Router,Request,Response} from "express";
 import joi from 'joi';
 import logger from '../utils/logger';
-import Joi from "joi";
+
 
 class LightsController implements Controller {
     path = '/api/lights'
@@ -15,8 +15,7 @@ class LightsController implements Controller {
 
     private initializeRoutes(): void {
         this.router.get(`${this.path}/get-status`, this.getLightStatus);
-        this.router.post(`${this.path}/status`, this.updateNxpStatus);
-        this.router.post(`${this.path}/toggle`, this.toggleLight);
+        this.router.post(`${this.path}/update-status`, this.updateLightsStatus);
     }
 
     private getLightStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -29,7 +28,7 @@ class LightsController implements Controller {
         }
     }
 
-    private updateNxpStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    private updateLightsStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
         const schema = joi.object().pattern(
             joi.string().regex(/^[1-5]$/),
@@ -52,10 +51,6 @@ class LightsController implements Controller {
             logger.error(error.message);
             next(error);
         }
-    }
-
-    private toggleLight = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
     }
 }
 
