@@ -12,3 +12,4 @@ const createLimiter = (max: number, windowMs = 15 * 60 * 1000) =>
 export const createAccountLimiter = createLimiter(100);
 export const authLimiter    = createLimiter(10);
 export const passwordResetLimiter = createLimiter(5, 60 * 60 * 1000);
+export const LightsLimiter = createLimiter(100);

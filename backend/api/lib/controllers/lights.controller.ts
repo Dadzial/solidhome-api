@@ -1,5 +1,7 @@
 import Controller from '../interfaces/controller.interface'
-import {NextFunction, Router,Request,Response} from "express";
+import {NextFunction, Router,Response} from "express";
+import {auth, AuthRequest} from "../middlewares/auth.middleware";
+import {LightsLimiter} from "../middlewares/rateLimiter.middleware";
 import joi from 'joi';
 import logger from '../utils/logger';
 
@@ -14,11 +16,11 @@ class LightsController implements Controller {
     }
 
     private initializeRoutes(): void {
-        this.router.get(`${this.path}/get-status`, this.getLightStatus);
-        this.router.post(`${this.path}/update-status`, this.updateLightsStatus);
+        this.router.get(`${this.path}/get-status`, auth as any , LightsLimiter ,this.getLightStatus);
+        this.router.post(`${this.path}/update-status`, auth as any , LightsLimiter ,this.updateLightsStatus);
     }
 
-    private getLightStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    private getLightStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try{
             res.status(200).json(this.lightStatus);
             logger.info(`Status is received`);
@@ -28,7 +30,7 @@ class LightsController implements Controller {
         }
     }
 
-    private updateLightsStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    private updateLightsStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
 
         const schema = joi.object().pattern(
             joi.string().regex(/^[1-5]$/),
