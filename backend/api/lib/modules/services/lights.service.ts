@@ -3,7 +3,7 @@ import { ILight } from '../models/lights.model';
 import { Types } from 'mongoose';
 import logger from '../../utils/logger';
 
-const ROOM_MAPPING: Record<number, string> = {
+export const ROOM_MAPPING: Record<number, string> = {
     1: 'Living Room',
     2: 'Kitchen',
     3: 'Bedroom',
@@ -12,20 +12,14 @@ const ROOM_MAPPING: Record<number, string> = {
 };
 
 class LightsService {
+
+    constructor() {
+        this.create().catch(err => logger.error("Background light initialization failed", err));
+    }
+
     public async getAll(): Promise<ILight[]> {
         try {
-            const dbLights = await LightModel.find().lean();
-
-            return Object.keys(ROOM_MAPPING).map(id => {
-                const lightId = parseInt(id);
-                const dbLight = dbLights.find(l => l.lightId === lightId);
-                
-                return dbLight || {
-                    lightId,
-                    room: ROOM_MAPPING[lightId],
-                    state: 0
-                } as ILight;
-            });
+            return await LightModel.find().lean();
         } catch (error) {
             logger.error("Error fetching lights:", error);
             throw new Error('Error fetching lights');
@@ -38,15 +32,11 @@ class LightsService {
                 const lightId = parseInt(id);
                 const room = ROOM_MAPPING[lightId];
 
-                if (!room) {
-                    logger.warn(`Invalid lightId ${lightId} received`);
-                    continue;
-                }
+                if (!room) continue;
 
                 const updateData: any = {
                     state,
-                    lastUpdatedBy: userId,
-                    room
+                    lastUpdatedBy: userId as any
                 };
 
                 if (state === 1) {
@@ -55,17 +45,28 @@ class LightsService {
                     updateData.turnedOffAt = new Date();
                 }
 
-                await LightModel.findOneAndUpdate(
-                    { lightId },
-                    { $set: updateData },
-                    { upsert: true, new: true }
-                );
-
-                logger.info(`Light ${lightId} (${room}) updated to ${state === 1 ? 'ON' : 'OFF'} by user ${userId}`);
+                await LightModel.updateOne({ room }, { $set: updateData });
+                logger.info(`Light in ${room} updated to ${state === 1 ? 'ON' : 'OFF'} by user ${userId}`);
             }
         } catch (error) {
             logger.error("Error updating lights status:", error);
             throw new Error('Error updating lights status');
+        }
+    }
+
+    public async create(): Promise<void> {
+        try {
+            const count = await LightModel.countDocuments();
+            if (count === 0) {
+                const initialLights = Object.values(ROOM_MAPPING).map(room => ({
+                    room,
+                    state: 0
+                }));
+                await LightModel.insertMany(initialLights);
+                logger.info("Initial lights created at startup");
+            }
+        } catch (error) {
+            logger.error("Error creating initial lights:", error);
         }
     }
 }

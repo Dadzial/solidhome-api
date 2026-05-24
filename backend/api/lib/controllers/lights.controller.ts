@@ -2,7 +2,7 @@ import Controller from '../interfaces/controller.interface'
 import {NextFunction, Router,Response} from "express";
 import {auth, AuthRequest} from "../middlewares/auth.middleware";
 import {LightsLimiter} from "../middlewares/rateLimiter.middleware";
-import LightsService from "../modules/services/lights.service";
+import LightsService, { ROOM_MAPPING } from "../modules/services/lights.service";
 import joi from 'joi';
 import logger from '../utils/logger';
 
@@ -24,9 +24,10 @@ class LightsController implements Controller {
         try{
             const lights = await this.lightsService.getAll();
             const statusMap: Record<number, number> = {};
-            
-            lights.forEach(light => {
-                statusMap[light.lightId] = light.state;
+
+            Object.entries(ROOM_MAPPING).forEach(([id, roomName]) => {
+                const light = lights.find(l => l.room === roomName);
+                statusMap[parseInt(id)] = light ? light.state : 0;
             });
 
             res.status(200).json(statusMap);
