@@ -2,6 +2,7 @@ import {config} from "./config";
 import logger from "./utils/logger";
 import express from "express"
 import mongoose from "mongoose";
+import {corsMiddleware} from "./utils/domains";
 import http from "http"
 import morgan from "morgan";
 import bodyParser from "body-parser";
@@ -20,6 +21,7 @@ class App {
     }
 
     private initializeMiddlewares(): void {
+        this.app.use(corsMiddleware);
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: true }));
         this.app.use(bodyParser.json());
