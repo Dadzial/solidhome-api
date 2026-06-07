@@ -11,7 +11,7 @@ import logger from '../utils/logger';
 import Joi from 'joi';
 
 class UserController implements Controller {
-    path = 'api/user';
+    path = '/api/user';
     router = Router();
 
     constructor(
