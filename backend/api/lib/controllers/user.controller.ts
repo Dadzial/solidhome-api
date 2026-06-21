@@ -94,7 +94,7 @@ class UserController implements Controller {
             if (!isAuthorized) {
                 return res.status(401).json({ error: 'Unauthorized' });
             }
-            const token = await this.tokenService.create(user._id, user.email);
+            const token = await this.tokenService.create(user._id, user.email, user.userName);
             res.status(200).json(this.tokenService.getToken(token));
 
         } catch (error) {

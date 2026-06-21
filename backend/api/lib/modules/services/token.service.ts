@@ -5,11 +5,12 @@ import {config} from '../../config';
 import { Types } from 'mongoose';
 
 class TokenService {
-    public async create(userId: Types.ObjectId, email: string) {
+    public async create(userId: Types.ObjectId, email: string, userName:string) {
         const access = 'auth';
         const userData = {
             userId: userId.toString(),
-            name: email,
+            email: email,
+            userName: userName,
             access: access
         };
 
