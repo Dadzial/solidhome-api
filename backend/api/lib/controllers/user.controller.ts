@@ -29,7 +29,7 @@ class UserController implements Controller {
         this.router.post(`${this.path}/auth`, authLimiter , this.authenticate);
         this.router.post(`${this.path}/reset/code`, passwordResetLimiter, this.sendVerificationCode)
         this.router.post(`${this.path}/reset/password`, passwordResetLimiter, this.resetPassword)
-        this.router.delete(`${this.path}/logout/:userId`, auth as any, this.removeHashSession);
+        this.router.delete(`${this.path}/logout`, auth as any, this.removeHashSession);
     }
 
     private createNew = async (req: Request, res: Response, next: NextFunction) => {
@@ -172,21 +172,16 @@ class UserController implements Controller {
     }
 
     private removeHashSession = async (req: AuthRequest, res: Response, next: NextFunction) => {
-        const { userId } = req.params;
-
-        if (req.user.userId !== userId) {
-            return res.status(403).json({ error: "Forbidden: You can only logout yourself" });
-        }
-
         try {
             let token = req.headers['x-access-token'] || req.headers['authorization'];
+
             if (token && typeof token === 'string' && token.startsWith('Bearer ')) {
                 token = token.slice(7, token.length);
             }
             if (!token || typeof token !== 'string') {
                 return res.status(400).json({ error: "No token provided" });
             }
-            
+
             const result = await this.tokenService.remove(token);
             logger.info("User session removed", result);
             return res.status(200).json({ message: "Logged out successfully" });
