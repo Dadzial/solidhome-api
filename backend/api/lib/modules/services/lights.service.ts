@@ -9,6 +9,7 @@ export const ROOM_MAPPING: Record<number, string> = {
     3: 'Bedroom',
     4: 'Bathroom',
     5: 'Hallway',
+    6: 'Garage'
 };
 
 class LightsService {

@@ -41,7 +41,7 @@ class LightsController implements Controller {
     private updateLightsStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
 
         const schema = joi.object().pattern(
-            joi.string().regex(/^[1-5]$/),
+            joi.string().regex(/^[1-6]$/),
             joi.number().valid(0, 1).required()
         ).min(1);
 
