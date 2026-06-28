@@ -8,7 +8,7 @@ export const ROOM_MAPPING: Record<number, string> = {
     2: 'Kitchen',
     3: 'Bedroom',
     4: 'Bathroom',
-    5: 'Hallway'
+    5: 'Hallway',
 };
 
 class LightsService {
@@ -26,7 +26,7 @@ class LightsService {
         }
     }
 
-    public async updateStatus(lightUpdates: Record<number, number>, userId: Types.ObjectId): Promise<void> {
+    public async updateStatus(lightUpdates: Record<number, number>, userId?: Types.ObjectId | null): Promise<void> {
         try {
             for (const [id, state] of Object.entries(lightUpdates)) {
                 const lightId = parseInt(id);
@@ -35,9 +35,11 @@ class LightsService {
                 if (!room) continue;
 
                 const updateData: any = {
-                    state,
-                    lastUpdatedBy: userId as any
+                    state
                 };
+                if (userId) {
+                    updateData.lastUpdatedBy = userId as any;
+                }
 
                 if (state === 1) {
                     updateData.turnedOnAt = new Date();
@@ -46,7 +48,7 @@ class LightsService {
                 }
 
                 await LightModel.updateOne({ room }, { $set: updateData });
-                logger.info(`Light in ${room} updated to ${state === 1 ? 'ON' : 'OFF'} by user ${userId}`);
+                logger.info(`Light in ${room} updated to ${state === 1 ? 'ON' : 'OFF'} by ${userId ? 'user ' + userId : 'board'}`);
             }
         } catch (error) {
             logger.error("Error updating lights status:", error);

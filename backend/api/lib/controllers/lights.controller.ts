@@ -16,8 +16,8 @@ class LightsController implements Controller {
     }
 
     private initializeRoutes(): void {
-        this.router.get(`${this.path}/get-status`, auth as any , LightsLimiter ,this.getLightStatus);
-        this.router.post(`${this.path}/update-status`, auth as any , LightsLimiter ,this.updateLightsStatus);
+        this.router.get(`${this.path}/get-status`, LightsLimiter ,this.getLightStatus);
+        this.router.post(`${this.path}/update-status`, LightsLimiter ,this.updateLightsStatus);
     }
 
     private getLightStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -54,9 +54,10 @@ class LightsController implements Controller {
                 return;
             }
 
-            await this.lightsService.updateStatus(value, req.user.userId);
+            const userId = req.user?.userId || null;
+            await this.lightsService.updateStatus(value, userId);
             
-            logger.info(`Status updated successfully in database by user ${req.user.userId}`);
+            logger.info(`Status updated successfully in database by ${userId ? 'user ' + userId : 'board'}`);
             res.status(200).json({ message: "Status updated" });
         } catch (error) {
             logger.error(`Error updating light status: ${error.message}`);
