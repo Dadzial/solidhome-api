@@ -17,7 +17,7 @@ class LightsController implements Controller {
 
     private initializeRoutes(): void {
         this.router.get(`${this.path}/get-status`, LightsLimiter ,this.getLightStatus);
-        this.router.post(`${this.path}/update-status`, LightsLimiter ,this.updateLightsStatus);
+        this.router.post(`${this.path}/update-status`, auth as any , LightsLimiter ,this.updateLightsStatus);
     }
 
     private getLightStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
