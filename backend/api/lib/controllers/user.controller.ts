@@ -72,7 +72,8 @@ class UserController implements Controller {
     private authenticate = async (req: Request, res: Response, next: NextFunction) => {
         const schema = Joi.object({
             userName: Joi.string().required(),
-            password: Joi.string().required()
+            password: Joi.string().required(),
+            rememberMe: Joi.boolean().optional(),
         });
 
         const { error, value } = schema.validate(req.body);
@@ -81,7 +82,7 @@ class UserController implements Controller {
             return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
         }
 
-        const { userName, password } = value;
+        const { userName, password, rememberMe } = value;
 
         try {
             const user = await this.userService.getByEmailOrName(userName);
@@ -94,7 +95,7 @@ class UserController implements Controller {
             if (!isAuthorized) {
                 return res.status(401).json({ error: 'Unauthorized' });
             }
-            const token = await this.tokenService.create(user._id, user.email, user.userName);
+            const token = await this.tokenService.create(user._id, user.email, user.userName, rememberMe);
             res.status(200).json(this.tokenService.getToken(token));
 
         } catch (error) {

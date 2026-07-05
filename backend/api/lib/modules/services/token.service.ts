@@ -5,7 +5,7 @@ import {config} from '../../config';
 import { Types } from 'mongoose';
 
 class TokenService {
-    public async create(userId: Types.ObjectId, email: string, userName:string) {
+    public async create(userId: Types.ObjectId, email: string, userName:string, rememberMe: boolean = false) {
         const access = 'auth';
         const userData = {
             userId: userId.toString(),
@@ -14,11 +14,13 @@ class TokenService {
             access: access
         };
 
+        const expiresIn = rememberMe ? '30d' : '1h';
+
         const value = jwt.sign(
             userData,
             config.jwtSecret,
             {
-                expiresIn: '1h'
+                expiresIn: expiresIn
             });
 
         try {
