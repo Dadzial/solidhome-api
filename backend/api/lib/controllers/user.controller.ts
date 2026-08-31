@@ -5,7 +5,7 @@ import TokenService from "../modules/services/token.service";
 import EmailService from "../modules/services/email.service";
 import ResetCodeService from "../modules/services/resetCode.service";
 import {auth, AuthRequest} from "../middlewares/auth.middleware";
-import {authLimiter , createAccountLimiter, passwordResetLimiter} from "../middlewares/rateLimiter.middleware";
+import {authLimiter , createAccountLimiter, passwordResetLimiter} from "../middlewares/rate-limiter.middleware";
 import Controller from '../interfaces/controller.interface'
 import logger from '../utils/logger';
 import Joi from 'joi';

@@ -1,7 +1,7 @@
 import Controller from '../interfaces/controller.interface'
 import {NextFunction, Router,Response} from "express";
 import {auth, AuthRequest} from "../middlewares/auth.middleware";
-import {LightsLimiter} from "../middlewares/rateLimiter.middleware";
+import {LightsLimiter} from "../middlewares/rate-limiter.middleware";
 import LightsService, { ROOM_MAPPING } from "../modules/services/lights.service";
 import joi from 'joi';
 import logger from '../utils/logger';
