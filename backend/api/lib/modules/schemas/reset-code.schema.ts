@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IResetCode } from '../models/resetCode.model';
+import { IResetCode } from '../models/reset-code.model';
 
 const ResetCodeSchema = new Schema<IResetCode>({
     userId: { type: Schema.Types.ObjectId, required: true, ref: 'User' },

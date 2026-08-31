@@ -5,7 +5,7 @@ import UserService from "./modules/services/user.service";
 import TokenService from "./modules/services/token.service";
 import PasswordService from "./modules/services/password.service";
 import EmailService from "./modules/services/email.service";
-import ResetCodeService from "./modules/services/resetCode.service";
+import ResetCodeService from "./modules/services/reset-code.service";
 import Controller from "./interfaces/controller.interface";
 import LightsService from "./modules/services/lights.service";
 

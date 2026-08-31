@@ -1,5 +1,5 @@
-import ResetCodeModel from '../schemas/resetCode.schema';
-import { IResetCode } from '../models/resetCode.model';
+import ResetCodeModel from '../schemas/reset-code.schema';
+import { IResetCode } from '../models/reset-code.model';
 import logger from '../../utils/logger';
 import { Types } from 'mongoose';
 
