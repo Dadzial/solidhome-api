@@ -2,9 +2,8 @@ import { Types } from 'mongoose';
 
 export interface ILight {
     _id?: Types.ObjectId;
-    room: string;
+    name: string;
+    appLabel: string;
     state: number;
-    lastUpdatedBy?: Types.ObjectId;
-    turnedOnAt?: Date;
-    turnedOffAt?: Date;
+    updatedAt?: Date;
 }

@@ -2,75 +2,65 @@ import LightModel from '../schemas/lights.schema';
 import { ILight } from '../models/lights.model';
 import { Types } from 'mongoose';
 import logger from '../../utils/logger';
+import LightsHistoryService from "./lights-history.service";
 
-export const ROOM_MAPPING: Record<number, string> = {
-    1: 'Living Room',
-    2: 'Kitchen',
-    3: 'Bedroom',
-    4: 'Bathroom',
-    5: 'Hallway',
-    6: 'Garage'
-};
+export const DEFAULT_LIGHTS = [
+    { name: 'living_room', appLabel: 'Salon' },
+    { name: 'kitchen', appLabel: 'Kuchnia' },
+    { name: 'boiler_room', appLabel: 'Kotłownia' },
+    { name: 'bathroom', appLabel: 'Łazienka' },
+    { name: 'hallway', appLabel: 'Korytarz' },
+    { name: 'garage', appLabel: 'Garaż' },
+]
 
 class LightsService {
 
-    constructor() {
-        this.create().catch(err => logger.error("Background light initialization failed", err));
+    constructor(private  lightsHistoryService: LightsHistoryService) {
+        this.initDefaultLights();
     }
 
-    public async getAll(): Promise<ILight[]> {
+    private async initDefaultLights() {
         try {
-            return await LightModel.find().lean();
-        } catch (error) {
-            logger.error("Error fetching lights:", error);
-            throw new Error('Error fetching lights');
-        }
-    }
-
-    public async updateStatus(lightUpdates: Record<number, number>, userId?: Types.ObjectId | null): Promise<void> {
-        try {
-            for (const [id, state] of Object.entries(lightUpdates)) {
-                const lightId = parseInt(id);
-                const room = ROOM_MAPPING[lightId];
-
-                if (!room) continue;
-
-                const updateData: any = {
-                    state
-                };
-                if (userId) {
-                    updateData.lastUpdatedBy = userId as any;
-                }
-
-                if (state === 1) {
-                    updateData.turnedOnAt = new Date();
-                } else {
-                    updateData.turnedOffAt = new Date();
-                }
-
-                await LightModel.updateOne({ room }, { $set: updateData });
-                logger.info(`Light in ${room} updated to ${state === 1 ? 'ON' : 'OFF'} by ${userId ? 'user ' + userId : 'board'}`);
+            for (const room of DEFAULT_LIGHTS) {
+                await LightModel.updateOne(
+                    { name : room.name},
+                    { $setOnInsert: { name: room.name, appLabel: room.appLabel, state: 0 } },
+                    { upsert: true }
+                );
             }
         } catch (error) {
-            logger.error("Error updating lights status:", error);
-            throw new Error('Error updating lights status');
+            logger.error('Error initializing default lights:', error);
         }
     }
 
-    public async create(): Promise<void> {
-        try {
-            const count = await LightModel.countDocuments();
-            if (count === 0) {
-                const initialLights = Object.values(ROOM_MAPPING).map(room => ({
-                    room,
-                    state: 0
-                }));
-                await LightModel.insertMany(initialLights);
-                logger.info("Initial lights created at startup");
-            }
-        } catch (error) {
-            logger.error("Error creating initial lights:", error);
+    public async getLightsForHardware(): Promise<Record<string, number>> {
+        const lights = await LightModel.find({}, 'name state').lean();
+
+        const statusMap: Record<string, number> = {};
+        for (const light of lights) {
+            statusMap[light.name] = light.state;
         }
+
+        return statusMap;
+    }
+
+    public async getLightsForApps(): Promise<ILight[]> {
+        return await LightModel.find().lean();
+    }
+
+    public async updateLightState(name: string, newState: number, userId?: Types.ObjectId): Promise<ILight> {
+        const light = await LightModel.findOne({ name });
+        if (!light) {
+            throw new Error(`Lights width "${name}" not found`);
+        }
+
+        if (light.state !== newState) {
+            light.state = newState;
+            await light.save();
+
+            await this.lightsHistoryService.addHistoryEntry(name, newState, userId);
+        }
+        return light;
     }
 }
 
