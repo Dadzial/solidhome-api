@@ -4,27 +4,47 @@ import { Types } from 'mongoose';
 import logger from '../../utils/logger';
 import LightsHistoryService from "./lights-history.service";
 
+/**
+ * @const DEFAULT_LIGHTS
+ * @description Domyślna lista punktów świetlnych w domu, mapowana 1:1 na wyjścia GPIO w SolidHome.c.
+ */
 export const DEFAULT_LIGHTS = [
-    { name: 'living_room', appLabel: 'Salon' },
-    { name: 'kitchen', appLabel: 'Kuchnia' },
-    { name: 'boiler_room', appLabel: 'Kotłownia' },
-    { name: 'bathroom', appLabel: 'Łazienka' },
-    { name: 'hallway', appLabel: 'Korytarz' },
-    { name: 'garage', appLabel: 'Garaż' },
-]
+    'living_room',
+    'kitchen',
+    'boiler_room',
+    'bathroom',
+    'hallway',
+    'garage'
+];
 
+/**
+ * @class LightsService
+ * @description Serwis zarządzający aktualnym stanem punktów świetlnych w systemie SolidHome.
+ * Odpowiada za synchronizację sprzętową z mikrokontrolerem NXP, obsługę włączników w aplikacji
+ * oraz delegowanie zdarzeń przełączeń do serwisu historii.
+ */
 class LightsService {
 
-    constructor(private  lightsHistoryService: LightsHistoryService) {
+    /**
+     * @constructor
+     * @param lightsHistoryService - Serwis odpowiedzialny za rejestrowanie historii zdarzeń przełączeń świateł.
+     */
+    constructor(private lightsHistoryService: LightsHistoryService) {
         this.initDefaultLights();
     }
 
+    /**
+     * Inicjalizuje domyślne punkty świetlne w bazie danych przy pierwszym starcie serwera.
+     * Dzięki operatorowi $setOnInsert tworzy dokumenty ze stanem 0 tylko jeśli nie istnieją,
+     * nie nadpisując włączonych świateł przy kolejnych restartach aplikacji.
+     * @private
+     */
     private async initDefaultLights() {
         try {
-            for (const room of DEFAULT_LIGHTS) {
+            for (const name of DEFAULT_LIGHTS) {
                 await LightModel.updateOne(
-                    { name : room.name},
-                    { $setOnInsert: { name: room.name, appLabel: room.appLabel, state: 0 } },
+                    { name },
+                    { $setOnInsert: { state: 0 } },
                     { upsert: true }
                 );
             }
@@ -33,7 +53,13 @@ class LightsService {
         }
     }
 
-    public async getLightsForHardware(): Promise<Record<string, number>> {
+    /**
+     * Pobiera stany wszystkich świateł w płaskim formacie klucz-wartość dla mikrokontrolera (SolidHome.c).
+     * Zoptymalizowany pod kątem biblioteki cJSON (np. { living_room: 0, kitchen: 1 }).
+     *
+     * @returns Promise<Record<string, number>>
+     */
+    public async sendLightsStatusForHardware(): Promise<Record<string, number>> {
         const lights = await LightModel.find({}, 'name state').lean();
 
         const statusMap: Record<string, number> = {};
@@ -44,14 +70,30 @@ class LightsService {
         return statusMap;
     }
 
-    public async getLightsForApps(): Promise<ILight[]> {
+    /**
+     * Pobiera pełną listę świateł dla interfejsu aplikacji użytkownika.
+     *
+     * @returns Promise<ILight[]>
+     */
+    public async sendLightsStatusForApps(): Promise<ILight[]> {
         return await LightModel.find().lean();
     }
 
+    /**
+     * Zmienia stan fizyczny światła (włącz/wyłącz).
+     * Jeśli stan faktycznie uległ zmianie, aktualizuje dokument w bazie i automatycznie
+     * rejestruje wpis w historii przez LightsHistoryService.
+     *
+     * @param name - Nazwa przełączanego światła (np. 'living_room').
+     * @param newState - Nowy stan zasilania: 0 (wyłączone) lub 1 (włączone).
+     * @param userId - Opcjonalny identyfikator zalogowanego użytkownika dokonującego zmiany.
+     * @returns Promise<ILight> Zaktualizowany dokument światła.
+     * @throws Error gdy światło o podanej nazwie nie istnieje w bazie.
+     */
     public async updateLightState(name: string, newState: number, userId?: Types.ObjectId): Promise<ILight> {
         const light = await LightModel.findOne({ name });
         if (!light) {
-            throw new Error(`Lights width "${name}" not found`);
+            throw new Error(`Light with "${name}" not found`);
         }
 
         if (light.state !== newState) {

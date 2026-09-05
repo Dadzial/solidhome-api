@@ -1,5 +1,11 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit from 'express-rate-limit'
 
+/**
+ * @const createLimiter
+ * @param max - Maksymalna liczba żądań dozwolona w określonym oknie czasowym (windowMs).
+ * @param windowMs - Okno czasowe
+ * @description - Funkcja tworząca middleware ograniczający liczbę żądań dla danej trasy Express.
+ */
 const createLimiter = (max: number, windowMs = 15 * 60 * 1000) =>
     rateLimit({
         windowMs,

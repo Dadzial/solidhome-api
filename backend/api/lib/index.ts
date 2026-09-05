@@ -8,22 +8,36 @@ import EmailService from "./modules/services/email.service";
 import ResetCodeService from "./modules/services/reset-code.service";
 import Controller from "./interfaces/controller.interface";
 import LightsService from "./modules/services/lights.service";
+import LightsHistoryService from "./modules/services/lights-history.service";
 
+/**
+ * Fabryka inicjalizująca instancje serwisów oraz wstrzykująca je jako zależności do kontrolerów.
+ *
+ * @returns Tablica skonfigurowanych kontrolerów aplikacji implementujących interfejs Controller.
+ */
 function createControllers(): Controller[] {
     const userService = new UserService();
     const tokenService = new TokenService();
     const passwordService = new PasswordService();
     const emailService = new EmailService();
     const resetCodeService = new ResetCodeService();
-    const lightsService = new LightsService();
+    const lightsHistoryService = new LightsHistoryService();
+    const lightsService = new LightsService(lightsHistoryService);
 
     return [
-        new LightsController(lightsService),
+        new LightsController(),
         new UserController(userService, tokenService, passwordService, emailService, resetCodeService)
     ];
 }
 
+/**
+ * Główna instancja aplikacji serwera SolidHome API.
+ */
 const app = new App();
+
+/**
+ * Lista zarejestrowanych kontrolerów aplikacji.
+ */
 const controllers = createControllers();
 
 controllers.forEach(controller => {

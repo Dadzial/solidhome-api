@@ -2,10 +2,24 @@ import nodemailer from 'nodemailer';
 import logger from '../../utils/logger';
 import { config } from '../../config';
 
+/**
+ * @class EmailService
+ * @description Serwis odpowiedzialny za konfigurację transportera SMTP oraz wysyłkę wiadomości e-mail
+ * (kody weryfikacyjne do resetu hasła) w środowisku produkcyjnym oraz deweloperskim (Ethereal).
+ */
 class EmailService {
+    /** Instancja transportera Nodemailer do wysyłki wiadomości */
     private transporter: nodemailer.Transporter | null = null;
+    /** Flaga określająca, czy serwis został pomyślnie zainicjalizowany */
     private initialized: boolean = false;
 
+    /**
+     * Inicjalizuje transporter Nodemailer.
+     * W przypadku zdefiniowania poświadczeń w pliku konfiguracyjnym łączy się z produkcyjnym serwerem SMTP.
+     * W środowisku lokalnym automatycznie generuje testowe konto Ethereal i loguje podgląd URL wiadomości.
+     *
+     * @returns Promise<void>
+     */
     public async init(): Promise<void> {
         if (this.initialized) return;
 
@@ -22,7 +36,6 @@ class EmailService {
                 });
                 logger.info("Email service initialized (Production SMTP)");
             } else {
-                // Fallback to Ethereal for development
                 const testAccount = await nodemailer.createTestAccount();
                 this.transporter = nodemailer.createTransport({
                     host: "smtp.ethereal.email",
@@ -41,8 +54,16 @@ class EmailService {
         }
     }
 
+    /**
+     * Wysyła wiadomość e-mail z jednorazowym kodem do resetu hasła użytkownika.
+     * Wiadomość zawiera kod w wersji tekstowej oraz sformatowany szablon HTML (ważny przez 15 minut).
+     *
+     * @param to - Adres e-mail odbiorcy wiadomości.
+     * @param code - 6-cyfrowy kod weryfikacyjny wygenerowany przez ResetCodeService.
+     * @returns Promise<void>
+     * @throws Error w przypadku braku inicjalizacji transportera lub błędu wysyłki.
+     */
     public async sendPasswordResetCode(to: string, code: string): Promise<void> {
-        // Ensure transporter is ready before sending
         if (!this.initialized) {
             await this.init();
         }
@@ -69,7 +90,6 @@ class EmailService {
 
         try {
             const info = await this.transporter.sendMail(mailOptions);
-            // Show preview URL only for Ethereal (dev mode)
             const previewUrl = nodemailer.getTestMessageUrl(info);
             if (previewUrl) {
                 logger.info(`Email preview URL: ${previewUrl}`);
