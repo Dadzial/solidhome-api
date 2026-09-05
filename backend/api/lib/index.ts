@@ -25,7 +25,7 @@ function createControllers(): Controller[] {
     const lightsService = new LightsService(lightsHistoryService);
 
     return [
-        new LightsController(),
+        new LightsController(lightsService, lightsHistoryService),
         new UserController(userService, tokenService, passwordService, emailService, resetCodeService)
     ];
 }

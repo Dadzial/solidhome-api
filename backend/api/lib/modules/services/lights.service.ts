@@ -59,7 +59,7 @@ class LightsService {
      *
      * @returns Promise<Record<string, number>>
      */
-    public async sendLightsStatusForHardware(): Promise<Record<string, number>> {
+    public async sendLightsStatusToHardware(): Promise<Record<string, number>> {
         const lights = await LightModel.find({}, 'name state').lean();
 
         const statusMap: Record<string, number> = {};
@@ -75,7 +75,7 @@ class LightsService {
      *
      * @returns Promise<ILight[]>
      */
-    public async sendLightsStatusForApps(): Promise<ILight[]> {
+    public async sendLightsStatusToApps(): Promise<ILight[]> {
         return await LightModel.find().lean();
     }
 

@@ -25,10 +25,10 @@ class LightsHistoryService {
                 state,
                 userId
             });
-            logger.info(`[LightsHistoryService] Zapisano w historii: ${name} -> stan: ${state}`);
+            logger.info(`[LightsHistoryService] Saved history entry: ${name} -> state: ${state}`);
             return entry;
         } catch (error) {
-            logger.error(`[LightsHistoryService] Błąd zapisu historii dla ${name}:`, error);
+            logger.error(`[LightsHistoryService] Error saving history entry for ${name}:`, error);
             throw error;
         }
     }
@@ -41,7 +41,7 @@ class LightsHistoryService {
      * @returns Promise<ILightHistory[]> Lista wpisów historii.
      * @throws Error w przypadku błędu odczytu z bazy danych.
      */
-    public async getHistory(limit: number = 100) {
+    public async getHistory(limit: number = 40) {
         try {
             return await lightsHistoryModel.find()
                 .sort({ createdAt: -1 })
@@ -49,7 +49,24 @@ class LightsHistoryService {
                 .populate('userId', 'userName email')
                 .lean();
         } catch (error) {
-            logger.error('[LightsHistoryService] Błąd pobierania całej historii:', error);
+            logger.error('[LightsHistoryService] Error fetching lights history:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Usuwa wszystkie wpisy z historii przełączeń świateł (reset dziennika).
+     *
+     * @returns Promise<{ acknowledged: boolean; deletedCount: number }> Wynik usunięcia dokumentów.
+     * @throws Error w przypadku niepowodzenia operacji w bazie danych.
+     */
+    public async resetHistory() {
+        try {
+            const result = await lightsHistoryModel.deleteMany({});
+            logger.info('[LightsHistoryService] Successfully reset lights history.');
+            return result;
+        } catch (error) {
+            logger.error('[LightsHistoryService] Error resetting lights history:', error);
             throw error;
         }
     }
