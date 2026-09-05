@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 import logger from '../../utils/logger';
 import { config } from '../../config';
 
@@ -9,7 +10,7 @@ import { config } from '../../config';
  */
 class EmailService {
     /** Instancja transportera Nodemailer do wysyłki wiadomości */
-    private transporter: nodemailer.Transporter | null = null;
+    private transporter: Transporter | null = null;
     /** Flaga określająca, czy serwis został pomyślnie zainicjalizowany */
     private initialized: boolean = false;
 
