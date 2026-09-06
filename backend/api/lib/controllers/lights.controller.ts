@@ -39,7 +39,6 @@ class LightsController implements Controller {
      */
     private initializeRoutes(): void {
         this.router.get(`${this.path}/status/hardware`, this.giveLightStatusToBoard);
-        this.router.get(`${this.path}/get/status`, this.giveLightStatusToBoard);
         this.router.get(`${this.path}/status/app`, auth as any, LightsLimiter, this.giveLightStatusToApp);
         this.router.get(`${this.path}/history`, auth as any, LightsLimiter, this.getLightHistory);
         this.router.post(`${this.path}/update`, auth as any, LightsLimiter, this.updateLightStatus);
@@ -53,7 +52,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express
      * @param res - Odpowiedź ze słownikiem stanów { [nazwa]: 0 | 1 }
      */
-    private giveLightStatusToBoard = async (res: Response) => {
+    private giveLightStatusToBoard = async (req: Request, res: Response) => {
         try {
             const status = await this.lightsService.sendLightsStatusToHardware();
             res.status(200).json(status);
@@ -70,7 +69,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express
      * @param res - Odpowiedź z listą dokumentów świateł
      */
-    private giveLightStatusToApp = async (res: Response) => {
+    private giveLightStatusToApp = async (req: Request, res: Response) => {
         try {
             const status = await this.lightsService.sendLightsStatusToApps();
             res.status(200).json(status);
@@ -136,7 +135,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express
      * @param res - Odpowiedź z potwierdzeniem wyczyszczenia historii
      */
-    private deleteLightHistory = async (res: Response) => {
+    private deleteLightHistory = async (req: Request, res: Response) => {
         try {
             const result = await this.lightsHistoryService.resetHistory();
             return res.status(200).json({ message: 'History reset successfully', deletedCount: result.deletedCount });
