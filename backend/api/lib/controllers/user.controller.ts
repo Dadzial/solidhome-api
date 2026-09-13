@@ -5,8 +5,14 @@ import TokenService from "../modules/services/token.service";
 import EmailService from "../modules/services/email.service";
 import ResetCodeService from "../modules/services/reset-code.service";
 import {auth, AuthRequest} from "../middlewares/auth.middleware";
-import {authLimiter , createAccountLimiter, passwordResetLimiter} from "../middlewares/rate-limiter.middleware";
+import {
+    authLimiter,
+    createAccountLimiter,
+    passwordResetLimiter,
+    updateAccountLimiter
+} from "../middlewares/rate-limiter.middleware";
 import Controller from '../interfaces/controller.interface'
+import { IUser } from "../modules/models/user.model";
 import logger from '../utils/logger';
 import Joi from 'joi';
 
@@ -46,6 +52,7 @@ class UserController implements Controller {
      */
     private initializeRouters(): void {
         this.router.post(`${this.path}/create`, createAccountLimiter, this.createNew);
+        this.router.post(`${this.path}/update`, auth as any , updateAccountLimiter , this.updateUser);
         this.router.post(`${this.path}/auth`, authLimiter, this.authenticate);
         this.router.post(`${this.path}/reset/code`, passwordResetLimiter, this.sendVerificationCode);
         this.router.post(`${this.path}/reset/password`, passwordResetLimiter, this.resetPassword);
@@ -94,6 +101,89 @@ class UserController implements Controller {
         } catch (error) {
             logger.error("Error creating user:", error);
             return res.status(400).json({ error: "Bad request", value: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    }
+
+
+    /**
+     * Aktualizacja danych użytkownika (np. e-mail, nazwa użytkownika, hasło).
+     * @route POST /api/user/update
+     * @access Private
+     * @param req - Zapytanie Express z nagłówkiem autoryzacyjnym (oczekuje w body: email?, userName?, currentPassword?, password?)
+     * @param res - Odpowiedź Express z zaktualizowanym obiektem użytkownika
+     * @returns 200 - Pomyślnie zaktualizowano konto, 400 - Błąd walidacji, 401 - Nieautoryzowany, 409 - Duplikat, 500 - Błąd serwera
+     */
+    private updateUser = async (req: AuthRequest, res: Response) => {
+        const schema = Joi.object({
+            email: Joi.string().email().optional(),
+            userName: Joi.string().alphanum().min(3).max(30).optional(),
+            currentPassword: Joi.string().optional(),
+            password: Joi.string().min(8).optional()
+        }).min(1);
+
+        const { error, value } = schema.validate(req.body);
+
+        if (error) {
+            return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
+        }
+
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({ error: "Unauthorized" });
+        }
+
+        const { email, userName, currentPassword, password } = value;
+
+        try {
+            if (userName || email) {
+                const isTaken = await this.userService.isEmailOrNameTakenByOther(userId, email, userName);
+                if (isTaken) {
+                    return res.status(409).json({ error: "Email or userName is already in use" });
+                }
+            }
+
+            if (password) {
+                if (!currentPassword) {
+                    return res.status(400).json({ error: "Current password is required" });
+                }
+
+                const isAuthorized = await this.passwordService.authorize(userId, currentPassword);
+                if (!isAuthorized) {
+                    return res.status(401).json({ error: "Invalid current password" });
+                }
+
+                await this.passwordService.createOrUpdate({
+                    userId,
+                    password
+                });
+            }
+
+            const updateData: Partial<IUser> = {};
+            if (email) updateData.email = email;
+            if (userName) updateData.userName = userName;
+
+            let updatedUser: IUser | null = null;
+            if (Object.keys(updateData).length > 0) {
+                updatedUser = await this.userService.update(userId, updateData);
+                if (!updatedUser) {
+                    return res.status(404).json({ error: "User not found" });
+                }
+            } else {
+                updatedUser = await this.userService.getById(userId);
+                if (!updatedUser && req.user.email) {
+                    updatedUser = await this.userService.getByEmailOrName(req.user.email);
+                }
+            }
+
+            return res.status(200).json({
+                _id: updatedUser?._id,
+                email: updatedUser?.email,
+                userName: updatedUser?.userName
+            });
+
+        } catch (error) {
+            logger.error(`Update User Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            return res.status(500).json({ error: "Internal server error" });
         }
     }
 
