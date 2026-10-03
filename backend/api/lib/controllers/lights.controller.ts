@@ -103,7 +103,7 @@ class LightsController implements Controller {
      * @route GET /api/lights/energy
      * @access Private (wymaga tokenu JWT)
      * @param req - Zapytanie Express
-     * @param res - Odpowiedź z danymi statystykami
+     * @param res - Odpowiedź z danymi statystykami energii
      */
     private getLightEnergyStats = async (req: Request, res: Response) => {
 
