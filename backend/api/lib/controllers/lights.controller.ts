@@ -106,7 +106,10 @@ class LightsController implements Controller {
      * @param res - Odpowiedź z danymi statystykami energii
      */
     private getLightEnergyStats = async (req: Request, res: Response) => {
-
+        const schema = Joi.object({
+            timeframe: Joi.string().valid('today', 'week', 'month').default('today'),
+            room: Joi.string().default('entireHouse')
+        });
     };
 
     /**
