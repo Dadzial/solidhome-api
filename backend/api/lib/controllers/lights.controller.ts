@@ -41,6 +41,7 @@ class LightsController implements Controller {
         this.router.get(`${this.path}/status/hardware`, this.giveLightStatusToBoard);
         this.router.get(`${this.path}/status/app`, auth as any, LightsLimiter, this.giveLightStatusToApp);
         this.router.get(`${this.path}/history`, auth as any, LightsLimiter, this.getLightHistory);
+        this.router.get(`${this.path}/energy`, auth as any, this.getLightEnergyStats);
         this.router.post(`${this.path}/update`, auth as any, LightsLimiter, this.updateLightStatus);
         this.router.delete(`${this.path}/history/reset`, auth as any, LightsLimiter, this.deleteLightHistory);
     }
@@ -95,6 +96,17 @@ class LightsController implements Controller {
             logger.error('Error fetching lights history', error);
             res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
         }
+    };
+
+    /**
+     * Pobiera statystyki zużycia energii dla świateł.
+     * @route GET /api/lights/energy
+     * @access Private (wymaga tokenu JWT)
+     * @param req - Zapytanie Express
+     * @param res - Odpowiedź z danymi statystykami
+     */
+    private getLightEnergyStats = async (req: Request, res: Response) => {
+
     };
 
     /**
