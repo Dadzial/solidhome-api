@@ -4,7 +4,6 @@ import { auth, AuthRequest } from "../middlewares/auth.middleware";
 import { LightsLimiter } from "../middlewares/rate-limiter.middleware";
 import LightsService from "../modules/services/lights.service";
 import LightsHistoryService from "../modules/services/lights-history.service";
-import LightsEnergyService from "../modules/services/lights-energy.service";
 import Joi from 'joi';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
@@ -31,7 +30,6 @@ class LightsController implements Controller {
     constructor(
         private lightsService: LightsService,
         private lightsHistoryService: LightsHistoryService,
-        private lightsEnergyService: LightsEnergyService
     ) {
         this.initializeRoutes();
     }
@@ -44,7 +42,6 @@ class LightsController implements Controller {
         this.router.get(`${this.path}/status/hardware`, this.giveLightStatusToBoard);
         this.router.get(`${this.path}/status/app`, auth as any, LightsLimiter, this.giveLightStatusToApp);
         this.router.get(`${this.path}/history`, auth as any, LightsLimiter, this.getLightHistory);
-        this.router.get(`${this.path}/energy`, auth as any, this.getLightEnergyStats);
         this.router.post(`${this.path}/update`, auth as any, LightsLimiter, this.updateLightStatus);
         this.router.delete(`${this.path}/history/reset`, auth as any, LightsLimiter, this.deleteLightHistory);
     }
@@ -98,35 +95,6 @@ class LightsController implements Controller {
         } catch (error) {
             logger.error('Error fetching lights history', error);
             res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
-        }
-    };
-
-    /**
-     * Pobiera statystyki zużycia energii dla świateł.
-     * @route GET /api/lights/energy
-     * @access Private (wymaga tokenu JWT)
-     * @param req - Zapytanie Express
-     * @param res - Odpowiedź z danymi statystykami energii
-     */
-    private getLightEnergyStats = async (req: Request, res: Response) => {
-        const schema = Joi.object({
-            timeframe: Joi.string().valid('today', 'week', 'month').default('today'),
-            name: Joi.string().default('entireHouse')
-        });
-
-        const { error, value } = schema.validate(req.query);
-
-        if (error) {
-            return res.status(400).json({ message: error.details[0].message });
-        }
-
-        try {
-            const { timeframe, name } = value;
-            const stats = await this.lightsEnergyService.getEnergyStats(timeframe, name);
-            return res.status(200).json(stats);
-        } catch (error) {
-            logger.error('Error fetching lights energy stats', error);
-            return res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
         }
     };
 
