@@ -46,10 +46,8 @@ class LightsEnergyService {
                 pointsCount = 4;
             }
 
-            // Pobieramy wszystkie logi z badanego okresu dla całego domu
             const allLogs = await lightsHistoryModel.find({ createdAt: { $gte: startDate } }).sort({ createdAt: 1 }).lean();
 
-            // 1. Zawsze wyliczamy zużycie wszystkich pokoi dla sekcji TOP 3 największego zużycia
             const roomHours: Record<string, number> = {};
             DEFAULT_LIGHTS.forEach(r => { roomHours[r] = 0; });
 
