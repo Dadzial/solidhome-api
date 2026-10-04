@@ -4,6 +4,7 @@ import { auth, AuthRequest } from "../middlewares/auth.middleware";
 import { LightsLimiter } from "../middlewares/rate-limiter.middleware";
 import LightsService from "../modules/services/lights.service";
 import LightsHistoryService from "../modules/services/lights-history.service";
+import LightsEnergyService from "../modules/services/lights-energy.service";
 import Joi from 'joi';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
@@ -25,10 +26,12 @@ class LightsController implements Controller {
      * @constructor
      * @param lightsService - Serwis operacji na bieżącym stanie świateł
      * @param lightsHistoryService - Serwis zarządzania historią zdarzeń oświetlenia
+     * @param lightsEnergyService - Serwis zarządzania statystykami zużycia energii oświetlenia
      */
     constructor(
         private lightsService: LightsService,
-        private lightsHistoryService: LightsHistoryService
+        private lightsHistoryService: LightsHistoryService,
+        private lightsEnergyService: LightsEnergyService
     ) {
         this.initializeRoutes();
     }
@@ -108,8 +111,23 @@ class LightsController implements Controller {
     private getLightEnergyStats = async (req: Request, res: Response) => {
         const schema = Joi.object({
             timeframe: Joi.string().valid('today', 'week', 'month').default('today'),
-            room: Joi.string().default('entireHouse')
+            name: Joi.string().default('entireHouse')
         });
+
+        const { error, value } = schema.validate(req.query);
+
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        try {
+            const { timeframe, name } = value;
+            const stats = await this.lightsEnergyService.getEnergyStats(timeframe, name);
+            return res.status(200).json(stats);
+        } catch (error) {
+            logger.error('Error fetching lights energy stats', error);
+            return res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+        }
     };
 
     /**
