@@ -4,6 +4,7 @@ import { auth, AuthRequest } from "../middlewares/auth.middleware";
 import { LightsLimiter } from "../middlewares/rate-limiter.middleware";
 import LightsService from "../modules/services/lights.service";
 import LightsHistoryService from "../modules/services/lights-history.service";
+import LightsEnergyService from "../modules/services/lights-energy.service";
 import Joi from 'joi';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
@@ -13,7 +14,7 @@ import { Types } from 'mongoose';
  * @implements Controller
  * @description Kontroler odpowiedzialny za obsługę punktów świetlnych w systemie SolidHome.
  * Obsługuje synchronizację sprzętową z mikrokontrolerem NXP (SolidHome.c) oraz interfejs
- * aplikacji klienckich (odczyt stanów, sterowanie oświetleniem, odczyt i reset historii).
+ * aplikacji klienckich (odczyt stanów, sterowanie oświetleniem, odczyt i reset historii, zużycie energii).
  */
 class LightsController implements Controller {
     /** Główna ścieżka bazowa dla tras świateł */
@@ -30,6 +31,7 @@ class LightsController implements Controller {
     constructor(
         private lightsService: LightsService,
         private lightsHistoryService: LightsHistoryService,
+        private lightsEnergyService: LightsEnergyService
     ) {
         this.initializeRoutes();
     }
@@ -42,6 +44,7 @@ class LightsController implements Controller {
         this.router.get(`${this.path}/status/hardware`, this.giveLightStatusToBoard);
         this.router.get(`${this.path}/status/app`, auth as any, LightsLimiter, this.giveLightStatusToApp);
         this.router.get(`${this.path}/history`, auth as any, LightsLimiter, this.getLightHistory);
+        this.router.get(`${this.path}/energy`, auth as any, this.getLightEnergyStats);
         this.router.post(`${this.path}/update`, auth as any, LightsLimiter, this.updateLightStatus);
         this.router.delete(`${this.path}/history/reset`, auth as any, LightsLimiter, this.deleteLightHistory);
     }
@@ -95,6 +98,40 @@ class LightsController implements Controller {
         } catch (error) {
             logger.error('Error fetching lights history', error);
             res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    };
+
+    /**
+     * Pobiera statystyki zużycia energii oświetlenia dla pojedynczego światła lub całego domu
+     * w wybranym przedziale czasu ('today', 'week', 'month').
+     * @route GET /api/lights/energy
+     * @access Private (wymaga tokenu JWT)
+     * @param req - Zapytanie Express (query: timeframe, room lub name)
+     * @param res - Odpowiedź z obiektem statystyk ILightEnergy
+     */
+    private getLightEnergyStats = async (req: Request, res: Response) => {
+        const schema = Joi.object({
+            timeframe: Joi.string().valid('today', 'week', 'month').default('today'),
+            room: Joi.string().default('entireHouse'),
+            name: Joi.string().optional()
+        }).unknown(true);
+
+        const { error, value } = schema.validate(req.query);
+
+        if (error) {
+            logger.warn(`[LightsController] Validation error on GET /api/lights/energy: ${error.details[0].message}`);
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        try {
+            const timeframe = value.timeframe;
+            const roomName = value.name || value.room || 'entireHouse';
+            const stats = await this.lightsEnergyService.getEnergyStats(timeframe, roomName);
+            logger.info(`[LightsController] GET /api/lights/energy (${timeframe}, ${roomName}) -> totalKwh: ${stats.totalKwh}`);
+            return res.status(200).json(stats);
+        } catch (error) {
+            logger.error('Error fetching lights energy stats', error);
+            return res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
         }
     };
 

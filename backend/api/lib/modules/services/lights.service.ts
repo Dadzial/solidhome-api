@@ -3,6 +3,7 @@ import { ILight } from '../models/lights.model';
 import { Types } from 'mongoose';
 import logger from '../../utils/logger';
 import LightsHistoryService from "./lights-history.service";
+import LightsEnergyService from "./lights-energy.service";
 
 /**
  * @const DEFAULT_LIGHTS
@@ -21,15 +22,19 @@ export const DEFAULT_LIGHTS = [
  * @class LightsService
  * @description Serwis zarządzający aktualnym stanem punktów świetlnych w systemie SolidHome.
  * Odpowiada za synchronizację sprzętową z mikrokontrolerem NXP, obsługę włączników w aplikacji
- * oraz delegowanie zdarzeń przełączeń do serwisu historii.
+ * oraz delegowanie zdarzeń przełączeń do serwisu historii i naliczania energii.
  */
 class LightsService {
 
     /**
      * @constructor
      * @param lightsHistoryService - Serwis odpowiedzialny za rejestrowanie historii zdarzeń przełączeń świateł.
+     * @param lightsEnergyService - Opcjonalny serwis odpowiedzialny za naliczanie zużycia energii.
      */
-    constructor(private lightsHistoryService: LightsHistoryService) {
+    constructor(
+        private lightsHistoryService: LightsHistoryService,
+        private lightsEnergyService?: LightsEnergyService
+    ) {
         this.initDefaultLights();
     }
 
@@ -101,6 +106,10 @@ class LightsService {
             await light.save();
 
             await this.lightsHistoryService.addHistoryEntry(name, newState, userId);
+
+            if (this.lightsEnergyService) {
+                await this.lightsEnergyService.accumulateEnergyOnStateChange(name, newState);
+            }
         }
         return light;
     }
