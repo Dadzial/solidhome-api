@@ -5,6 +5,7 @@ import { LightsLimiter } from "../middlewares/rate-limiter.middleware";
 import LightsService from "../modules/services/lights.service";
 import LightsHistoryService from "../modules/services/lights-history.service";
 import LightsEnergyService from "../modules/services/lights-energy.service";
+import LightsScheduleService from "../modules/services/lights-schedule.service";
 import Joi from 'joi';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
@@ -14,7 +15,7 @@ import { Types } from 'mongoose';
  * @implements Controller
  * @description Kontroler odpowiedzialny za obsługę punktów świetlnych w systemie SolidHome.
  * Obsługuje synchronizację sprzętową z mikrokontrolerem NXP (SolidHome.c) oraz interfejs
- * aplikacji klienckich (odczyt stanów, sterowanie oświetleniem, odczyt i reset historii, zużycie energii).
+ * aplikacji klienckich (odczyt stanów, sterowanie oświetleniem, odczyt i reset historii, zużycie energii, harmonogramy).
  */
 class LightsController implements Controller {
     /** Główna ścieżka bazowa dla tras świateł */
@@ -27,11 +28,13 @@ class LightsController implements Controller {
      * @param lightsService - Serwis operacji na bieżącym stanie świateł
      * @param lightsHistoryService - Serwis zarządzania historią zdarzeń oświetlenia
      * @param lightsEnergyService - Serwis zarządzania statystykami zużycia energii oświetlenia
+     * @param lightsScheduleService - Serwis zarządzania regułami harmonogramu oświetlenia
      */
     constructor(
         private lightsService: LightsService,
         private lightsHistoryService: LightsHistoryService,
-        private lightsEnergyService: LightsEnergyService
+        private lightsEnergyService: LightsEnergyService,
+        private lightsScheduleService: LightsScheduleService
     ) {
         this.initializeRoutes();
     }
@@ -45,6 +48,10 @@ class LightsController implements Controller {
         this.router.get(`${this.path}/status/app`, auth as any, LightsLimiter, this.giveLightStatusToApp);
         this.router.get(`${this.path}/history`, auth as any, LightsLimiter, this.getLightHistory);
         this.router.get(`${this.path}/energy`, auth as any, this.getLightEnergyStats);
+        this.router.get(`${this.path}/rules`, auth as any, LightsLimiter, this.getScheduleRules);
+        this.router.post(`${this.path}/rules`, auth as any, LightsLimiter, this.createScheduleRule);
+        this.router.patch(`${this.path}/rules/:id`, auth as any, LightsLimiter, this.toggleScheduleRule);
+        this.router.delete(`${this.path}/rules/:id`, auth as any, LightsLimiter, this.deleteScheduleRule);
         this.router.post(`${this.path}/update`, auth as any, LightsLimiter, this.updateLightStatus);
         this.router.delete(`${this.path}/history/reset`, auth as any, LightsLimiter, this.deleteLightHistory);
     }
@@ -131,6 +138,99 @@ class LightsController implements Controller {
             return res.status(200).json(stats);
         } catch (error) {
             logger.error('Error fetching lights energy stats', error);
+            return res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    };
+
+    /**
+     * Pobiera listę wszystkich reguł harmonogramu oświetlenia.
+     * @route GET /api/lights/rules
+     * @access Private (wymaga tokenu JWT)
+     * @param req - Zapytanie Express
+     * @param res - Odpowiedź z listą reguł harmonogramu
+     */
+    private getScheduleRules = async (req: Request, res: Response) => {
+        try {
+            const rules = await this.lightsScheduleService.getRules();
+            res.status(200).json(rules);
+        } catch (error) {
+            logger.error('Error fetching schedule rules', error);
+            res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    };
+
+    /**
+     * Tworzy nową regułę harmonogramu oświetlenia.
+     * @route POST /api/lights/rules
+     * @access Private (wymaga tokenu JWT)
+     * @param req - Zapytanie Express z ciałem { name, days, startTime, endTime }
+     * @param res - Odpowiedź ze statusem 201 i utworzoną regułą
+     */
+    private createScheduleRule = async (req: AuthRequest, res: Response) => {
+        const schema = Joi.object({
+            name: Joi.string().trim().min(1).max(100).required(),
+            days: Joi.array().items(Joi.number().min(0).max(6)).min(1).required(),
+            startTime: Joi.string().required(),
+            endTime: Joi.string().required(),
+        });
+
+        const { error, value } = schema.validate(req.body);
+
+        if (error) {
+            return res.status(400).json({ message: error.details[0].message });
+        }
+
+        try {
+            const userId = req.user?.userId ? new Types.ObjectId(req.user.userId) : undefined;
+            const rule = await this.lightsScheduleService.createRule({
+                ...value,
+                userId,
+            });
+            return res.status(201).json(rule);
+        } catch (error) {
+            logger.error('Error creating schedule rule', error);
+            return res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    };
+
+    /**
+     * Włącza lub wyłącza wybraną regułę harmonogramu oświetlenia.
+     * @route PATCH /api/lights/rules/:id
+     * @access Private (wymaga tokenu JWT)
+     * @param req - Zapytanie Express z parametrem :id i opcjonalnym { active: boolean } w ciele
+     * @param res - Odpowiedź ze zaktualizowaną regułą
+     */
+    private toggleScheduleRule = async (req: Request, res: Response) => {
+        const { id } = req.params;
+        const { active } = req.body;
+
+        try {
+            const rule = await this.lightsScheduleService.toggleRule(
+                id,
+                typeof active === 'boolean' ? active : undefined
+            );
+            return res.status(200).json(rule);
+        } catch (error) {
+            logger.error(`Error toggling schedule rule "${id}"`, error);
+            return res.status(400).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    };
+
+    /**
+     * Usuwa regułę harmonogramu oświetlenia.
+     * @route DELETE /api/lights/rules/:id
+     * @access Private (wymaga tokenu JWT)
+     * @param req - Zapytanie Express z parametrem :id
+     * @param res - Odpowiedź potwierdzająca usunięcie
+     */
+    private deleteScheduleRule = async (req: Request, res: Response) => {
+        const { id } = req.params;
+
+        try {
+            const result = await this.lightsScheduleService.deleteRule(id);
+            return res.status(200).json({ message: 'Rule deleted successfully', deletedCount: result.deletedCount });
+        } catch (error) {
+            logger.error(`Error deleting schedule rule "${id}"`, error);
             return res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
         }
     };
