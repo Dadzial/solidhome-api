@@ -129,8 +129,10 @@ class LightsEnergyService {
                 this.initializeLivePoints(record, now);
                 record.chartData[record.chartData.length - 1] = houseActiveKw;
                 for (const room of DEFAULT_LIGHTS) {
-                    record.roomsChartData[room][record.roomsChartData[room].length - 1] = roomActiveKw[room];
+                    roomsChartData[room] = new Array(MAX_LIVE_POINTS).fill(0);
+                    roomsChartData[room][roomsChartData[room].length - 1] = roomActiveKw[room];
                 }
+                record.roomsChartData = roomsChartData as any;
                 return;
             } else if (diff > 1) {
                 for (let step = 1; step < diff; step++) {
