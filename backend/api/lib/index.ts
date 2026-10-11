@@ -10,7 +10,6 @@ import Controller from "./interfaces/controller.interface";
 import LightsService from "./modules/services/lights.service";
 import LightsHistoryService from "./modules/services/lights-history.service";
 import LightsEnergyService from "./modules/services/lights-energy.service";
-import LightsScheduleService from "./modules/services/lights-schedule.service";
 
 /**
  * Fabryka inicjalizująca instancje serwisów oraz wstrzykująca je jako zależności do kontrolerów.
@@ -25,11 +24,10 @@ function createControllers(): Controller[] {
     const resetCodeService = new ResetCodeService();
     const lightsHistoryService = new LightsHistoryService();
     const lightsEnergyService = new LightsEnergyService();
-    const lightsScheduleService = new LightsScheduleService();
     const lightsService = new LightsService(lightsHistoryService, lightsEnergyService);
 
     return [
-        new LightsController(lightsService, lightsHistoryService, lightsEnergyService, lightsScheduleService),
+        new LightsController(lightsService, lightsHistoryService, lightsEnergyService),
         new UserController(userService, tokenService, passwordService, emailService, resetCodeService)
     ];
 }
