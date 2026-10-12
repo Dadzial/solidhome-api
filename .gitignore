@@ -6,6 +6,7 @@
 
 # Environment
 backend/api/.env
+backend/api/.env.prod
 backend/api/.env.local
 backend/api/.env.*.local
 
