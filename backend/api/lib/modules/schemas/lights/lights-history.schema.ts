@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import {ILightHistory} from "../models/lights-history.model";
+import {ILightHistory} from "../../models/lights/lights-history.model";
 /**
  * @const LightHistorySchema
  * @property {String} name - Nazwa przełączonego światła (np. 'living_room').

@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
-import logger from '../../utils/logger';
-import { config } from '../../config';
+import logger from '../../../utils/logger';
+import { config } from '../../../config';
 
 /**
  * @class EmailService

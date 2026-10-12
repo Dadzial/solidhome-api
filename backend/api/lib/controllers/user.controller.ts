@@ -1,9 +1,9 @@
 import { Request, Response, Router } from "express";
-import UserService from "../modules/services/user.service";
-import PasswordService from "../modules/services/password.service";
-import TokenService from "../modules/services/token.service";
-import EmailService from "../modules/services/email.service";
-import ResetCodeService from "../modules/services/reset-code.service";
+import UserService from "../modules/services/user/user.service";
+import PasswordService from "../modules/services/user/password.service";
+import TokenService from "../modules/services/user/token.service";
+import EmailService from "../modules/services/user/email.service";
+import ResetCodeService from "../modules/services/user/reset-code.service";
 import {auth, AuthRequest} from "../middlewares/auth.middleware";
 import {
     authLimiter,
@@ -12,7 +12,7 @@ import {
     updateAccountLimiter
 } from "../middlewares/rate-limiter.middleware";
 import Controller from '../interfaces/controller.interface'
-import { IUser } from "../modules/models/user.model";
+import { IUser } from "../modules/models/user/user.model";
 import logger from '../utils/logger';
 import Joi from 'joi';
 

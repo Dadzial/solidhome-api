@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
-import  TokenModel  from '../schemas/token.schema';
-import logger from "../../utils/logger";
-import {config} from '../../config';
+import  TokenModel  from '../../schemas/user/token.schema';
+import logger from "../../../utils/logger";
+import {config} from '../../../config';
 import { Types } from 'mongoose';
 
 /**

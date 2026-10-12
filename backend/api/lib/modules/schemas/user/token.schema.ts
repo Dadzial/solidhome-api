@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IToken } from '../models/token.model';
+import { IToken } from '../../models/user/token.model';
 /**
  * @const TokenSchema
  * @property {Schema.Types.ObjectId} userId - Identyfikator zalogowanego użytkownika (relacja do User).

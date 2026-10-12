@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { ILight } from '../models/lights.model';
+import { ILight } from '../../models/lights/lights.model';
 /**
  * @const LightSchema
  * @property {String} name - Unikalna nazwa pokoju (np. 'living_room'), mapowana na piny GPIO w SolidHome.c.

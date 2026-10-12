@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IUser } from '../models/user.model';
+import { IUser } from '../../models/user/user.model';
 /**
  * @const UserSchema
  * @property {String} email - Unikalny adres e-mail użytkownika używany do logowania i powiadomień.

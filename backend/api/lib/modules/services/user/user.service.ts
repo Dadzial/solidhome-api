@@ -1,6 +1,6 @@
-import UserModel  from "../schemas/user.schema";
-import {IUser} from "../models/user.model";
-import logger from "../../utils/logger";
+import UserModel  from "../../schemas/user/user.schema";
+import {IUser} from "../../models/user/user.model";
+import logger from "../../../utils/logger";
 import {Types} from "mongoose";
 
 /**

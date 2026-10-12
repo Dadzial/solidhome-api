@@ -1,7 +1,7 @@
-import lightsHistoryModel from '../schemas/lights-history.schema'
-import {ILightHistory} from "../models/lights-history.model";
+import lightsHistoryModel from '../../schemas/lights/lights-history.schema'
+import {ILightHistory} from "../../models/lights/lights-history.model";
 import { Types } from 'mongoose';
-import logger from '../../utils/logger';
+import logger from '../../../utils/logger';
 
 /**
  * @class LightsHistoryService

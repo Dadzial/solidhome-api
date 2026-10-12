@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
-import PasswordModel from '../schemas/password.schema';
-import logger from '../../utils/logger';
+import PasswordModel from '../../schemas/user/password.schema';
+import logger from '../../../utils/logger';
 import { Types } from 'mongoose';
 
 /**

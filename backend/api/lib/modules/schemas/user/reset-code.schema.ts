@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IResetCode } from '../models/reset-code.model';
+import { IResetCode } from '../../models/user/reset-code.model';
 /**
  * @const ResetCodeSchema
  * @property {Schema.Types.ObjectId} userId - Identyfikator użytkownika wnioskującego o reset hasła (relacja do User).

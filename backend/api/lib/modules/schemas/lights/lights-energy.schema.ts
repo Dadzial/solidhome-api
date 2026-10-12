@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { ILightEnergy } from '../models/lights-energy.model';
+import { ILightEnergy } from '../../models/lights/lights-energy.model';
 
 /**
  * @const LightEnergySchema

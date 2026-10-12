@@ -1,9 +1,9 @@
-import LightEnergyModel from '../schemas/lights-energy.schema';
-import LightModel from '../schemas/lights.schema';
-import { ILightEnergy, EnergyTimeframe } from '../models/lights-energy.model';
-import { ITopRoomEnergy } from '../models/lights-energy-top.model';
+import LightEnergyModel from '../../schemas/lights/lights-energy.schema';
+import LightModel from '../../schemas/lights/lights.schema';
+import { ILightEnergy, EnergyTimeframe } from '../../models/lights/lights-energy.model';
+import { ITopRoomEnergy } from '../../models/lights/lights-energy-top.model';
 import { DEFAULT_LIGHTS } from './lights.service';
-import logger from '../../utils/logger';
+import logger from '../../../utils/logger';
 
 /**
  * Moc żarówek (w watach) dla poszczególnych punktów oświetlenia.

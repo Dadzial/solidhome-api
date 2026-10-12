@@ -1,15 +1,16 @@
 import App from "./app";
 import UserController from "./controllers/user.controller";
 import LightsController from "./controllers/lights.controller";
-import UserService from "./modules/services/user.service";
-import TokenService from "./modules/services/token.service";
-import PasswordService from "./modules/services/password.service";
-import EmailService from "./modules/services/email.service";
-import ResetCodeService from "./modules/services/reset-code.service";
+import UserService from "./modules/services/user/user.service";
+import TokenService from "./modules/services/user/token.service";
+import PasswordService from "./modules/services/user/password.service";
+import EmailService from "./modules/services/user/email.service";
+import ResetCodeService from "./modules/services/user/reset-code.service";
 import Controller from "./interfaces/controller.interface";
-import LightsService from "./modules/services/lights.service";
-import LightsHistoryService from "./modules/services/lights-history.service";
-import LightsEnergyService from "./modules/services/lights-energy.service";
+import LightsService from "./modules/services/lights/lights.service";
+import LightsHistoryService from "./modules/services/lights/lights-history.service";
+import LightsEnergyService from "./modules/services/lights/lights-energy.service";
+import LightsScheduleService from "./modules/services/lights/lights-schedule.service";
 
 /**
  * Fabryka inicjalizująca instancje serwisów oraz wstrzykująca je jako zależności do kontrolerów.
@@ -24,10 +25,11 @@ function createControllers(): Controller[] {
     const resetCodeService = new ResetCodeService();
     const lightsHistoryService = new LightsHistoryService();
     const lightsEnergyService = new LightsEnergyService();
+    const lightsScheduleService = new LightsScheduleService();
     const lightsService = new LightsService(lightsHistoryService, lightsEnergyService);
 
     return [
-        new LightsController(lightsService, lightsHistoryService, lightsEnergyService),
+        new LightsController(lightsService, lightsHistoryService, lightsEnergyService, lightsScheduleService),
         new UserController(userService, tokenService, passwordService, emailService, resetCodeService)
     ];
 }

@@ -1,7 +1,7 @@
-import LightModel from '../schemas/lights.schema';
-import { ILight } from '../models/lights.model';
+import LightModel from '../../schemas/lights/lights.schema';
+import { ILight } from '../../models/lights/lights.model';
 import { Types } from 'mongoose';
-import logger from '../../utils/logger';
+import logger from '../../../utils/logger';
 import LightsHistoryService from "./lights-history.service";
 import LightsEnergyService from "./lights-energy.service";
 

@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { IPassword } from '../models/password.model';
+import { IPassword } from '../../models/user/password.model';
 /**
  * @const PasswordSchema
  * @property {Schema.Types.ObjectId} userId - Unikalny identyfikator użytkownika, do którego przypisane jest hasło (relacja do User).
