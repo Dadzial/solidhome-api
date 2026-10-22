@@ -6,7 +6,7 @@ import { CorsOptions } from "cors";
  * @description Biała lista dozwolonych domen (Origins) uprawnionych do
  * wykonywania zapytań międzydomenowych (CORS) do API (np. frontend Angular na porcie 4200).
  */
-const allowedOrigins = ['http://localhost:4200'];
+const allowedOrigins = ['http://localhost:4200', 'https://solidhome-app.onrender.com'];
 
 /**
  * @const corsOptions
