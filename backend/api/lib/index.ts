@@ -1,6 +1,7 @@
 import App from "./app";
 import UserController from "./controllers/user.controller";
 import LightsController from "./controllers/lights.controller";
+import AirController from "./controllers/air.controller";
 import UserService from "./modules/services/user/user.service";
 import TokenService from "./modules/services/user/token.service";
 import PasswordService from "./modules/services/user/password.service";
@@ -30,6 +31,7 @@ function createControllers(): Controller[] {
 
     return [
         new LightsController(lightsService, lightsHistoryService, lightsEnergyService, lightsScheduleService),
+        new AirController(),
         new UserController(userService, tokenService, passwordService, emailService, resetCodeService)
     ];
 }
