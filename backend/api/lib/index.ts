@@ -1,4 +1,5 @@
 import App from "./app";
+import HealthController from "./controllers/health.controller";
 import UserController from "./controllers/user.controller";
 import LightsController from "./controllers/lights.controller";
 import AirController from "./controllers/air.controller";
@@ -31,6 +32,7 @@ function createControllers(): Controller[] {
 
     return [
         new LightsController(lightsService, lightsHistoryService, lightsEnergyService, lightsScheduleService),
+        new HealthController(),
         new AirController(),
         new UserController(userService, tokenService, passwordService, emailService, resetCodeService)
     ];
