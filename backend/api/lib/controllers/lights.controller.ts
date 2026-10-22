@@ -59,7 +59,7 @@ class LightsController implements Controller {
     /**
      * Zwraca aktualny stan świateł w postaci płaskiej mapy dla mikrokontrolera NXP (SolidHome.c).
      * @route GET /api/lights/status/hardware (oraz /api/lights/get/status)
-     * @access Public
+     * @access Private (wymaga tokenu JWT)
      * @param req - Zapytanie Express
      * @param res - Odpowiedź ze słownikiem stanów { [nazwa]: 0 | 1 }
      */
