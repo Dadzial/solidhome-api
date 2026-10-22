@@ -17,7 +17,7 @@ dotenv.config();
  * @property {string} smtpFrom - Adres e-mail i nazwa nadawcy widoczna w wysyłanych wiadomościach.
  */
 export const config = {
-    port: process.env.PORT || process.env.API_PORT || 3000,
+    port: process.env.API_PORT,
     databaseUrl: process.env.API_DATABASE_URL,
     jwtSecret: process.env.JWT_SECRET,
     npx_ip : process.env.NXP_BOARD_IP,
