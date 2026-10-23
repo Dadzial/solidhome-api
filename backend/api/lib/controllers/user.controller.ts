@@ -67,7 +67,7 @@ class UserController implements Controller {
      * @param res - Odpowiedź Express z utworzonym obiektem użytkownika
      * @returns 200 - Pomyślnie utworzono konto, 400 - Błąd walidacji lub tworzenia
      */
-    private createNew = async (req: Request, res: Response) => {
+    private createNew = async (req: Request, res: Response): Promise<Response> => {
         const schema = Joi.object({
             email: Joi.string().email().required(),
             userName: Joi.string().alphanum().min(3).max(30).required(),
@@ -113,7 +113,7 @@ class UserController implements Controller {
      * @param res - Odpowiedź Express z zaktualizowanym obiektem użytkownika
      * @returns 200 - Pomyślnie zaktualizowano konto, 400 - Błąd walidacji, 401 - Nieautoryzowany, 409 - Duplikat, 500 - Błąd serwera
      */
-    private updateUser = async (req: AuthRequest, res: Response) => {
+    private updateUser = async (req: AuthRequest, res: Response): Promise<Response> => {
         const schema = Joi.object({
             email: Joi.string().email().optional(),
             userName: Joi.string().alphanum().min(3).max(30).optional(),
@@ -195,7 +195,7 @@ class UserController implements Controller {
      * @param res - Odpowiedź Express z wygenerowanym tokenem JWT
      * @returns 200 - Zalogowano pomyślnie, 400 - Błędne dane, 401 - Niepoprawne poświadczenia
      */
-    private authenticate = async (req: Request, res: Response) => {
+    private authenticate = async (req: Request, res: Response): Promise<void | Response> => {
         const schema = Joi.object({
             userName: Joi.string().required(),
             password: Joi.string().required(),
@@ -238,7 +238,7 @@ class UserController implements Controller {
      * @param res - Odpowiedź Express z komunikatem o wysłaniu kodu
      * @returns 200 - Kod wysłany (lub informacja neutralna ze względów bezpieczeństwa), 400/500 - Błąd
      */
-    private sendVerificationCode = async (req: Request, res: Response) => {
+    private sendVerificationCode = async (req: Request, res: Response): Promise<Response> => {
         const schema = Joi.object({
             email: Joi.string().email().required()
         });
@@ -277,7 +277,7 @@ class UserController implements Controller {
      * @param res - Odpowiedź Express z potwierdzeniem zmiany hasła
      * @returns 200 - Hasło zmienione, 400 - Niepoprawny/wygasły kod, 500 - Błąd serwera
      */
-    private resetPassword = async (req: Request, res: Response) => {
+    private resetPassword = async (req: Request, res: Response): Promise<Response> => {
         const schema = Joi.object({
             code: Joi.string().length(6).required(),
             password: Joi.string().min(8).required()
@@ -322,7 +322,7 @@ class UserController implements Controller {
      * @param res - Odpowiedź Express z potwierdzeniem wylogowania
      * @returns 200 - Wylogowano pomyślnie, 400 - Brak tokenu, 401 - Błąd autoryzacji
      */
-    private removeHashSession = async (req: AuthRequest, res: Response) => {
+    private removeHashSession = async (req: AuthRequest, res: Response): Promise<Response> => {
         try {
             let token = req.headers['x-access-token'] || req.headers['authorization'];
 

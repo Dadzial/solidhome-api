@@ -63,7 +63,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express
      * @param res - Odpowiedź ze słownikiem stanów { [nazwa]: 0 | 1 }
      */
-    private giveLightStatusToBoard = async (req: Request, res: Response) => {
+    private giveLightStatusToBoard = async (req: Request, res: Response): Promise<void> => {
         try {
             const status = await this.lightsService.sendLightsStatusToHardware();
             res.status(200).json(status);
@@ -80,7 +80,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express
      * @param res - Odpowiedź z listą dokumentów świateł
      */
-    private giveLightStatusToApp = async (req: Request, res: Response) => {
+    private giveLightStatusToApp = async (req: Request, res: Response): Promise<void> => {
         try {
             const status = await this.lightsService.sendLightsStatusToApps();
             res.status(200).json(status);
@@ -97,7 +97,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express (opcjonalny parametr query ?limit=)
      * @param res - Odpowiedź z listą wpisów historii
      */
-    private getLightHistory = async (req: Request, res: Response) => {
+    private getLightHistory = async (req: Request, res: Response): Promise<void> => {
         try {
             const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
             const history = await this.lightsHistoryService.getHistory(limit);
@@ -116,7 +116,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express (query: timeframe, room lub name)
      * @param res - Odpowiedź z obiektem statystyk ILightEnergy
      */
-    private getLightEnergyStats = async (req: Request, res: Response) => {
+    private getLightEnergyStats = async (req: Request, res: Response): Promise<Response> => {
         const schema = Joi.object({
             timeframe: Joi.string().valid('today', 'week', 'month').default('today'),
             room: Joi.string().default('entireHouse'),
@@ -149,7 +149,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express
      * @param res - Odpowiedź z listą reguł harmonogramu
      */
-    private getScheduleRules = async (req: Request, res: Response) => {
+    private getScheduleRules = async (req: Request, res: Response): Promise<void> => {
         try {
             const rules = await this.lightsScheduleService.getRules();
             res.status(200).json(rules);
@@ -166,7 +166,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express z ciałem { name, days, startTime, endTime, rooms }
      * @param res - Odpowiedź ze statusem 201 i utworzoną regułą
      */
-    private createScheduleRule = async (req: AuthRequest, res: Response) => {
+    private createScheduleRule = async (req: AuthRequest, res: Response): Promise<Response> => {
         const schema = Joi.object({
             name: Joi.string().trim().min(1).max(100).required(),
             days: Joi.array().items(Joi.number().min(0).max(6)).min(1).required(),
@@ -201,7 +201,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express z parametrem :id i opcjonalnym ciałem { active?: boolean }
      * @param res - Odpowiedź ze zaktualizowaną regułą
      */
-    private updateRuleActiveStatus = async (req: AuthRequest, res: Response) => {
+    private updateRuleActiveStatus = async (req: AuthRequest, res: Response): Promise<Response> => {
         const { id } = req.params;
 
         if (!Types.ObjectId.isValid(id)) {
@@ -237,7 +237,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express zawierające { name: string, state: 0 | 1 }
      * @param res - Odpowiedź z zaktualizowanym obiektem światła
      */
-    private updateLightStatus = async (req: AuthRequest, res: Response) => {
+    private updateLightStatus = async (req: AuthRequest, res: Response): Promise<Response> => {
         const schema = Joi.object({
             name: Joi.string().required(),
             state: Joi.number().valid(0, 1).required()
@@ -268,7 +268,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express
      * @param res - Odpowiedź z potwierdzeniem wyczyszczenia historii
      */
-    private deleteLightHistory = async (req: Request, res: Response) => {
+    private deleteLightHistory = async (req: Request, res: Response): Promise<Response> => {
         try {
             const result = await this.lightsHistoryService.resetHistory();
             return res.status(200).json({ message: 'History reset successfully', deletedCount: result.deletedCount });
@@ -285,7 +285,7 @@ class LightsController implements Controller {
      * @param req - Zapytanie Express z parametrem :id
      * @param res - Odpowiedź z potwierdzeniem usunięcia reguły
      */
-    private deleteScheduleRule = async (req: AuthRequest, res: Response) => {
+    private deleteScheduleRule = async (req: AuthRequest, res: Response): Promise<Response> => {
         const { id } = req.params;
 
         if (!Types.ObjectId.isValid(id)) {
