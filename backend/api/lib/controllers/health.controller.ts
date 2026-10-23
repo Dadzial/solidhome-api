@@ -22,8 +22,9 @@ class HealthController implements Controller {
     /**
      * Inicjalizuje i rejestruje trasy kontrolera wraz z middleware'ami.
      * @private
+     * @returns void
      */
-    private initializeRoutes() {
+    private initializeRoutes() : void {
         this.router.get(`${this.path}`, this.healthCheck);
     }
 
@@ -33,8 +34,9 @@ class HealthController implements Controller {
      * @access Private
      * @param req - Obiekt żądania Express
      * @param res - Obiekt odpowiedzi Express
+     * @returns void
      */
-    private healthCheck = (req: Request, res: Response) => {
+    private healthCheck = (req: Request, res: Response) : void => {
         res.status(200).json({ status: "ok", message: "SolidHome API is running" });
     };
 }

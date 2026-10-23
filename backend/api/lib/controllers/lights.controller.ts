@@ -45,15 +45,15 @@ class LightsController implements Controller {
      */
     private initializeRoutes(): void {
         this.router.get(`${this.path}/status/hardware`, this.giveLightStatusToBoard);
-        this.router.get(`${this.path}/status/app`, auth as any, LightsLimiter, this.giveLightStatusToApp);
-        this.router.get(`${this.path}/history`, auth as any, LightsLimiter, this.getLightHistory);
-        this.router.get(`${this.path}/energy`, auth as any, this.getLightEnergyStats);
-        this.router.get(`${this.path}/rules`, auth as any, LightsLimiter, this.getScheduleRules);
-        this.router.post(`${this.path}/rules`, auth as any, LightsLimiter, this.createScheduleRule);
-        this.router.put(`${this.path}/rules/:id`, auth as any, LightsLimiter, this.updateRuleActiveStatus);
-        this.router.post(`${this.path}/update`, auth as any, LightsLimiter, this.updateLightStatus);
-        this.router.delete(`${this.path}/history/reset`, auth as any, LightsLimiter, this.deleteLightHistory);
-        this.router.delete(`${this.path}/rules/:id`, auth as any, LightsLimiter, this.deleteScheduleRule);
+        this.router.get(`${this.path}/status/app`, auth, LightsLimiter, this.giveLightStatusToApp);
+        this.router.get(`${this.path}/history`, auth, LightsLimiter, this.getLightHistory);
+        this.router.get(`${this.path}/energy`, auth, this.getLightEnergyStats);
+        this.router.get(`${this.path}/rules`, auth, LightsLimiter, this.getScheduleRules);
+        this.router.post(`${this.path}/rules`, auth, LightsLimiter, this.createScheduleRule);
+        this.router.put(`${this.path}/rules/:id`, auth, LightsLimiter, this.updateRuleActiveStatus);
+        this.router.post(`${this.path}/update`, auth, LightsLimiter, this.updateLightStatus);
+        this.router.delete(`${this.path}/history/reset`, auth, LightsLimiter, this.deleteLightHistory);
+        this.router.delete(`${this.path}/rules/:id`, auth, LightsLimiter, this.deleteScheduleRule);
     }
 
     /**

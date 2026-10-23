@@ -52,11 +52,11 @@ class UserController implements Controller {
      */
     private initializeRouters(): void {
         this.router.post(`${this.path}/create`, createAccountLimiter, this.createNew);
-        this.router.post(`${this.path}/update`, auth as any , updateAccountLimiter , this.updateUser);
+        this.router.post(`${this.path}/update`, auth, updateAccountLimiter, this.updateUser);
         this.router.post(`${this.path}/auth`, authLimiter, this.authenticate);
         this.router.post(`${this.path}/reset/code`, passwordResetLimiter, this.sendVerificationCode);
         this.router.post(`${this.path}/reset/password`, passwordResetLimiter, this.resetPassword);
-        this.router.delete(`${this.path}/logout`, auth as any, this.removeHashSession);
+        this.router.delete(`${this.path}/logout`, auth, this.removeHashSession);
     }
 
     /**
