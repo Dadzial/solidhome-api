@@ -82,7 +82,7 @@ class App {
     /**
      * Uruchamia nasłuchiwanie serwera HTTP na porcie zdefiniowanym w konfiguracji.
      */
-    public listen() {
+    public listen() : void {
         this.server.listen(config.port, () => {
             logger.info(`Server listening on ${config.port}`);
         })
