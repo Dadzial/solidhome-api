@@ -44,7 +44,7 @@ class LightsService {
      * nie nadpisując włączonych świateł przy kolejnych restartach aplikacji.
      * @private
      */
-    private async initDefaultLights() {
+    private async initDefaultLights(): Promise<void> {
         try {
             for (const name of DEFAULT_LIGHTS) {
                 await LightModel.updateOne(

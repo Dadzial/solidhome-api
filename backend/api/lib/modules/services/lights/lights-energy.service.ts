@@ -167,7 +167,7 @@ class LightsEnergyService {
     /**
      * Zwraca lub tworzy dokument dzienny w bazie danych.
      */
-    private async getOrCreateDayRecord(dateStr: string) {
+    private async getOrCreateDayRecord(dateStr: string): Promise<any> {
         let record = await LightEnergyModel.findOne({ name: `day_${dateStr}` });
         if (!record) {
             const initialLightsKwh: Record<string, number> = {};

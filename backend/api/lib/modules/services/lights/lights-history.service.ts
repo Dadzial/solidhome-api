@@ -41,7 +41,7 @@ class LightsHistoryService {
      * @returns Promise<ILightHistory[]> Lista wpisów historii.
      * @throws Error w przypadku błędu odczytu z bazy danych.
      */
-    public async getHistory(limit: number = 40) {
+    public async getHistory(limit: number = 40): Promise<ILightHistory[]> {
         try {
             return await lightsHistoryModel.find()
                 .sort({ createdAt: -1 })
@@ -60,7 +60,7 @@ class LightsHistoryService {
      * @returns Promise<{ acknowledged: boolean; deletedCount: number }> Wynik usunięcia dokumentów.
      * @throws Error w przypadku niepowodzenia operacji w bazie danych.
      */
-    public async resetHistory() {
+    public async resetHistory(): Promise<{ acknowledged: boolean; deletedCount: number }> {
         try {
             const result = await lightsHistoryModel.deleteMany({});
             logger.info('[LightsHistoryService] Successfully reset lights history.');

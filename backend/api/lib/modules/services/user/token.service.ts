@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
-import  TokenModel  from '../../schemas/user/token.schema';
+import TokenModel from '../../schemas/user/token.schema';
+import { IToken } from '../../models/user/token.model';
 import logger from "../../../utils/logger";
 import {config} from '../../../config';
 import { Types } from 'mongoose';
@@ -21,7 +22,7 @@ class TokenService {
      * @returns Promise<any> Zapisany dokument tokenu z bazy danych.
      * @throws Error w przypadku niepowodzenia zapisu sesji w bazie.
      */
-    public async create(userId: Types.ObjectId, email: string, userName:string, rememberMe: boolean = false) {
+    public async create(userId: Types.ObjectId, email: string, userName:string, rememberMe: boolean = false): Promise<IToken> {
         const access = 'auth';
         const userData = {
             userId: userId.toString(),
@@ -61,7 +62,7 @@ class TokenService {
      * @param token - Dokument tokenu z bazy danych.
      * @returns Obiekt z kluczem token gotowy do odesłania w odpowiedzi HTTP.
      */
-    public getToken(token: any) {
+    public getToken(token: any): { token: string } {
         return {token: token.value};
     }
 
@@ -72,7 +73,7 @@ class TokenService {
      * @returns Promise<any> Wynik operacji usunięcia z MongoDB.
      * @throws Error gdy token nie został znaleziony lub usunięty.
      */
-    public async remove(tokenValue: string) {
+    public async remove(tokenValue: string): Promise<any> {
         try {
             const result = await TokenModel.deleteOne({ value: tokenValue });
 
