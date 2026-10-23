@@ -22,8 +22,9 @@ export interface AuthRequest extends Request {
  * sprawdza podpis kryptograficzny oraz weryfikuje istnienie aktywnej sesji w bazie danych (TokenModel).
  * Po poprawnej weryfikacji przypisuje zdekodowane dane do `request.user` i wywołuje `next()`.
  * W przypadku braku tokenu lub jego nieważności odsyła kod błędu 401 (Unauthorized).
+ * @returns {Promise<void | Response>} Zwraca `void` w przypadku pomyślnej autoryzacji lub odpowiedź Express z kodem 401 w przypadku błędu.
  */
-export const auth = async (request: AuthRequest, response: Response, next: NextFunction) => {
+export const auth = async (request: AuthRequest, response: Response, next: NextFunction): Promise<void | Response> => {
     let token = request.headers['x-access-token'] || request.headers['authorization'];
     if (token && typeof token === 'string') {
         if (token.startsWith('Bearer ')) {
