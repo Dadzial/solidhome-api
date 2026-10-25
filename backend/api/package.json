@@ -12,7 +12,8 @@
     "test:watch": "vitest watch",
     "watch": "nodemon",
     "dev": "ts-node ./lib/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "node dist/lib/index.js"
   },
   "author": "Damian Duszak",
   "license": "ISC",

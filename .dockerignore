@@ -1,0 +1,16 @@
+node_modules
+**/node_modules
+.git
+.gitignore
+.idea
+.vscode
+dist
+**/dist
+coverage
+**/coverage
+logs
+**/logs
+*.log
+.env
+.env.*
+.DS_Store
