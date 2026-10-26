@@ -459,6 +459,24 @@ class LightsEnergyService {
             throw error;
         }
     }
+
+    /**
+     * Czyści wszystkie zapisane rekordy statystyk zużycia energii oraz resetuje znaczniki czasu.
+     * @returns {Promise<{ acknowledged: boolean; deletedCount: number }>} Wynik operacji usunięcia z MongoDB
+     */
+    public async resetEnergyStats(): Promise<{ acknowledged: boolean; deletedCount: number }> {
+        try {
+            const result = await LightEnergyModel.deleteMany({});
+            for (const room of DEFAULT_LIGHTS) {
+                this.turnedOnTimestamps[room] = null;
+            }
+            logger.info('[LightsEnergyService] Successfully reset lights energy stats.');
+            return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
+        } catch (error) {
+            logger.error('[LightsEnergyService] Error resetting lights energy stats:', error);
+            throw new Error('Error resetting lights energy stats');
+        }
+    }
 }
 
 export default LightsEnergyService;

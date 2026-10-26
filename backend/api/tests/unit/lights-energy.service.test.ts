@@ -91,4 +91,25 @@ describe('LightsEnergyService', () => {
             await expect(service.accumulateEnergyOnStateChange('garage', 1)).resolves.not.toThrow();
         });
     });
+
+    describe('resetEnergyStats', () => {
+        it('should delete all energy records and reset turnedOnTimestamps', async () => {
+            await service.accumulateEnergyOnStateChange('kitchen', 1);
+            const beforeReset = await LightEnergyModel.countDocuments();
+            expect(beforeReset).toBeGreaterThan(0);
+
+            const result = await service.resetEnergyStats();
+            expect(result.acknowledged).toBe(true);
+            expect(result.deletedCount).toBeGreaterThan(0);
+
+            const afterReset = await LightEnergyModel.countDocuments();
+            expect(afterReset).toBe(0);
+        });
+
+        it('should throw an error when database delete fails', async () => {
+            vi.spyOn(LightEnergyModel, 'deleteMany').mockRejectedValueOnce(new Error('Delete error'));
+
+            await expect(service.resetEnergyStats()).rejects.toThrow('Error resetting lights energy stats');
+        });
+    });
 });

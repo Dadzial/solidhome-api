@@ -158,6 +158,25 @@ describe('LightsController (Integration)', () => {
         });
     });
 
+    describe('DELETE /api/lights/energy/reset', () => {
+        it('should reset light energy records and return 200', async () => {
+            const res = await request(app)
+                .delete('/api/lights/energy/reset')
+                .set('Authorization', `Bearer ${authToken}`);
+
+            expect(res.status).toBe(200);
+            expect(res.body.message).toBe('Energy stats reset successfully');
+            expect(res.body).toHaveProperty('deletedCount');
+        });
+
+        it('should return 401 when unauthenticated', async () => {
+            const res = await request(app)
+                .delete('/api/lights/energy/reset');
+
+            expect(res.status).toBe(401);
+        });
+    });
+
     describe('GET /api/lights/energy', () => {
         it('should return energy consumption statistics for authenticated user', async () => {
             const res = await request(app)

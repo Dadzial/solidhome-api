@@ -52,6 +52,7 @@ class LightsController implements Controller {
         this.router.post(`${this.path}/rules`, auth, LightsLimiter, this.createScheduleRule);
         this.router.put(`${this.path}/rules/:id`, auth, LightsLimiter, this.updateRuleActiveStatus);
         this.router.post(`${this.path}/update`, auth, LightsLimiter, this.updateLightStatus);
+        this.router.delete(`${this.path}/energy/reset`, auth, LightsLimiter, this.deleteLightEnergyStats);
         this.router.delete(`${this.path}/history/reset`, auth, LightsLimiter, this.deleteLightHistory);
         this.router.delete(`${this.path}/rules/:id`, auth, LightsLimiter, this.deleteScheduleRule);
     }
@@ -258,6 +259,23 @@ class LightsController implements Controller {
         } catch (error) {
             logger.error(`Error updating light state for "${name}"`, error);
             return res.status(400).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+        }
+    };
+
+    /**
+     * Czyści statystyki zużycia energii oświetlenia w systemie.
+     * @route DELETE /api/lights/energy/reset
+     * @access Private (wymaga tokenu JWT)
+     * @param req - Zapytanie Express
+     * @param res - Odpowiedź z potwierdzeniem wyczyszczenia statystyk
+     */
+    private deleteLightEnergyStats = async (req: Request, res: Response): Promise<Response> => {
+        try {
+            const result = await this.lightsEnergyService.resetEnergyStats();
+            return res.status(200).json({ message: 'Energy stats reset successfully', deletedCount: result.deletedCount });
+        } catch (error) {
+            logger.error('Error resetting lights energy stats', error);
+            return res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
         }
     };
 
