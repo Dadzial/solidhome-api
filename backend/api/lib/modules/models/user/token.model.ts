@@ -8,7 +8,7 @@ import { Types } from 'mongoose';
 export interface IToken {
     userId: Types.ObjectId;
     createDate: number;
-    type: string;
+    type: 'authorization' | 'refresh';
     value: string;
     expireAt?: Date;
 }

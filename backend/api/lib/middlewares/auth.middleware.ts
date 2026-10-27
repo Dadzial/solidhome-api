@@ -34,7 +34,7 @@ export const auth = async (request: Request, response: Response, next: NextFunct
             const decoded = jwt.verify(token, config.jwtSecret);
 
             const TokenModel = (await import('../modules/schemas/user/token.schema')).default;
-            const tokenExists = await TokenModel.findOne({ value: token });
+            const tokenExists = await TokenModel.findOne({ value: token, type: 'authorization' });
             if (!tokenExists) {
                 return response.status(401).send('Invalid or expired token.');
             }

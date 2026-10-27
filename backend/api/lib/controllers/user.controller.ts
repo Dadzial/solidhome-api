@@ -15,6 +15,7 @@ import Controller from '../interfaces/controller.interface'
 import { IUser } from "../modules/models/user/user.model";
 import logger from '../utils/logger';
 import Joi from 'joi';
+import resetCodeService from "../modules/services/user/reset-code.service";
 
 /**
  * @class UserController
@@ -54,6 +55,7 @@ class UserController implements Controller {
         this.router.post(`${this.path}/create`, createAccountLimiter, this.createNew);
         this.router.post(`${this.path}/update`, auth, updateAccountLimiter, this.updateUser);
         this.router.post(`${this.path}/auth`, authLimiter, this.authenticate);
+        this.router.post(`${this.path}/auth/refresh`, this.refreshAuthenticate);
         this.router.post(`${this.path}/reset/code`, passwordResetLimiter, this.sendVerificationCode);
         this.router.post(`${this.path}/reset/password`, passwordResetLimiter, this.resetPassword);
         this.router.delete(`${this.path}/logout`, auth, this.removeHashSession);
@@ -62,7 +64,7 @@ class UserController implements Controller {
     /**
      * Rejestracja nowego użytkownika w systemie.
      * @route POST /api/user/create
-     * @access Public
+     * @access Private
      * @param req - Zapytanie Express (oczekuje w body: email, userName, password)
      * @param res - Odpowiedź Express z utworzonym obiektem użytkownika
      * @returns 200 - Pomyślnie utworzono konto, 400 - Błąd walidacji lub tworzenia
@@ -190,7 +192,7 @@ class UserController implements Controller {
     /**
      * Uwierzytelnienie użytkownika (logowanie) i wygenerowanie tokenu JWT.
      * @route POST /api/user/auth
-     * @access Public
+     * @access Private
      * @param req - Zapytanie Express (oczekuje w body: userName, password, rememberMe?)
      * @param res - Odpowiedź Express z wygenerowanym tokenem JWT
      * @returns 200 - Zalogowano pomyślnie, 400 - Błędne dane, 401 - Niepoprawne poświadczenia
@@ -231,9 +233,36 @@ class UserController implements Controller {
     }
 
     /**
+     * Odświeżenie tokenu JWT na podstawie istniejącego tokenu.
+     * @route POST /api/user/auth/refresh
+     * @access Private
+     * @param req - Zapytanie Express (oczekuje w body: token)
+     * @param res - Odpowiedź Express z nowym tokenem JWT
+     * @returns 200 - Token odświeżony pomyślnie, 400 - Brak tokenu, 401 - Niepoprawny/wygasły token
+     */
+    private refreshAuthenticate = async (req: Request, res: Response): Promise<void | Response> => {
+        const schema = Joi.object({
+            refreshToken: Joi.string().required()
+        });
+
+        const { error, value } = schema.validate(req.body);
+        if (error) {
+            return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
+        }
+
+        try {
+            const tokens = await this.tokenService.refresh(value.refreshToken);
+            return res.status(200).json(tokens);
+        } catch (err) {
+            return res.status(401).json({ error: "Invalid or expired refresh token" });
+        }
+    };
+
+
+    /**
      * Wysłanie 6-cyfrowego kodu weryfikacyjnego na podany adres e-mail w celu resetu hasła.
      * @route POST /api/user/reset/code
-     * @access Public
+     * @access Private
      * @param req - Zapytanie Express (oczekuje w body: email)
      * @param res - Odpowiedź Express z komunikatem o wysłaniu kodu
      * @returns 200 - Kod wysłany (lub informacja neutralna ze względów bezpieczeństwa), 400/500 - Błąd
@@ -272,7 +301,7 @@ class UserController implements Controller {
     /**
      * Zmiana hasła użytkownika na podstawie otrzymanego kodu weryfikacyjnego.
      * @route POST /api/user/reset/password
-     * @access Public
+     * @access Private
      * @param req - Zapytanie Express (oczekuje w body: code, password)
      * @param res - Odpowiedź Express z potwierdzeniem zmiany hasła
      * @returns 200 - Hasło zmienione, 400 - Niepoprawny/wygasły kod, 500 - Błąd serwera

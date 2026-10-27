@@ -155,6 +155,57 @@ describe('UserController (Integration)', () => {
         });
     });
 
+    describe('POST /api/user/auth/refresh', () => {
+        it('should refresh access token when valid refreshToken is provided', async () => {
+            await createTestUser({
+                email: 'refresh@example.com',
+                userName: 'refreshUser',
+                password: 'MyPassword123!'
+            });
+
+            const loginRes = await request(app)
+                .post('/api/user/auth')
+                .send({
+                    userName: 'refreshUser',
+                    password: 'MyPassword123!',
+                    rememberMe: false
+                });
+
+            expect(loginRes.status).toBe(200);
+            expect(loginRes.body).toHaveProperty('refreshToken');
+
+            const refreshRes = await request(app)
+                .post('/api/user/auth/refresh')
+                .send({
+                    refreshToken: loginRes.body.refreshToken
+                });
+
+            expect(refreshRes.status).toBe(200);
+            expect(refreshRes.body).toHaveProperty('token');
+            expect(refreshRes.body).toHaveProperty('refreshToken');
+        });
+
+        it('should return 400 when refreshToken is missing in body', async () => {
+            const res = await request(app)
+                .post('/api/user/auth/refresh')
+                .send({});
+
+            expect(res.status).toBe(400);
+            expect(res.body).toHaveProperty('details');
+        });
+
+        it('should return 401 when refreshToken is invalid or not in database', async () => {
+            const res = await request(app)
+                .post('/api/user/auth/refresh')
+                .send({
+                    refreshToken: 'invalid_token_string'
+                });
+
+            expect(res.status).toBe(401);
+            expect(res.body.error).toBe('Invalid or expired refresh token');
+        });
+    });
+
     describe('POST /api/user/reset/code', () => {
         it('should generate 6-digit verification code and dispatch email for existing user', async () => {
             await createTestUser({ email: 'recover@example.com' });
