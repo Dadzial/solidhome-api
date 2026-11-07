@@ -45,7 +45,7 @@ export const auth = async (
 
       (request as AuthRequest).user = decoded;
       next();
-    } catch (ex) {
+    } catch {
       return response.status(401).send('Invalid token.');
     }
   } else {

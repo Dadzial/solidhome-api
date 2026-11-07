@@ -1,8 +1,5 @@
 import Controller from '../interfaces/controller.interface';
-import { Router, Response, Request } from 'express';
-import { auth, AuthRequest } from '../middlewares/auth.middleware';
-import Joi from 'joi';
-import logger from '../utils/logger';
+import { Router } from 'express';
 
 /**
  * @class AirController

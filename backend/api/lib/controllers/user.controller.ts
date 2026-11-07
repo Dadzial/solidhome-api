@@ -15,7 +15,6 @@ import Controller from '../interfaces/controller.interface';
 import { IUser } from '../modules/models/user/user.model';
 import logger from '../utils/logger';
 import Joi from 'joi';
-import resetCodeService from '../modules/services/user/reset-code.service';
 
 /**
  * @class UserController
@@ -264,7 +263,7 @@ class UserController implements Controller {
     try {
       const tokens = await this.tokenService.refresh(value.refreshToken);
       return res.status(200).json(tokens);
-    } catch (err) {
+    } catch {
       return res.status(401).json({ error: 'Invalid or expired refresh token' });
     }
   };

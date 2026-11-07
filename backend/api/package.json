@@ -15,7 +15,9 @@
     "build": "tsc",
     "start": "node dist/lib/index.js",
     "format": "prettier --write \"lib/**/*.ts\" \"tests/**/*.ts\"",
-    "format:check": "prettier --check \"lib/**/*.ts\" \"tests/**/*.ts\""
+    "format:check": "prettier --check \"lib/**/*.ts\" \"tests/**/*.ts\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "author": "Damian Duszak",
   "license": "ISC",
@@ -37,6 +39,7 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/body-parser": "^1.19.6",
     "@types/cors": "2.8.13",
@@ -47,10 +50,14 @@
     "@types/nodemailer": "^8.0.1",
     "@types/supertest": "^7.2.1",
     "@vitest/coverage-v8": "^5.0.5",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.14.0",
     "mongodb-memory-server": "^11.2.0",
     "nodemon": "2.0.22",
     "prettier": "^3.9.10",
     "supertest": "^7.2.2",
+    "typescript-eslint": "^8.72.1",
     "vitest": "^5.0.0"
   }
 }

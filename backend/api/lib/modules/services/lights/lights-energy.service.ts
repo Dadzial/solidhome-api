@@ -88,8 +88,8 @@ class LightsEnergyService {
     now: Date = new Date(),
   ): void {
     const timeStr = getTimeString(now);
-    let categories: string[] = Array.isArray(record.categories) ? [...record.categories] : [];
-    let chartData: number[] = Array.isArray(record.chartData) ? [...record.chartData] : [];
+    const categories: string[] = Array.isArray(record.categories) ? [...record.categories] : [];
+    const chartData: number[] = Array.isArray(record.chartData) ? [...record.chartData] : [];
 
     const rawRoomsData =
       record.roomsChartData instanceof Map
