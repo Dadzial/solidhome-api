@@ -19,7 +19,7 @@ dotenv.config();
 export const config = {
   port: process.env.PORT,
   databaseUrl: process.env.API_DATABASE_URL,
-  jwtSecret: process.env.JWT_SECRET,
+  jwtSecret: process.env.JWT_SECRET || 'solidhome_default_jwt_secret_key',
   npx_ip: process.env.NXP_BOARD_IP,
   smtpHost: process.env.SMTP_HOST || 'smtp.ethereal.email',
   smtpPort: parseInt(process.env.SMTP_PORT || '587'),

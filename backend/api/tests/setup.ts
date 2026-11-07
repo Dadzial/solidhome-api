@@ -2,6 +2,12 @@ import { beforeAll, afterEach, afterAll } from 'vitest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 
+/**
+ * Ustawienie zmiennej środowiskowej JWT_SECRET dla testów.
+ * Jeśli nie jest ustawiona, przypisuje domyślną wartość 'test_jwt_secret_key_123456789'.
+ */
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_key_123456789';
+
 let mongoServer: MongoMemoryServer;
 
 /**

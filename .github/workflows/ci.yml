@@ -44,6 +44,8 @@ jobs:
 
       - name: Run Integration & Unit Tests (Vitest)
         run: pnpm test
+        env:
+          JWT_SECRET: 'ci_jwt_secret_key_123456789'
 
       - name: Build TypeScript (tsc)
         run: pnpm build
