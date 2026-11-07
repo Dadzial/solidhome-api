@@ -1,5 +1,5 @@
-import cors from "cors";
-import { CorsOptions } from "cors";
+import cors from 'cors';
+import { CorsOptions } from 'cors';
 
 /**
  * @const allowedOrigins
@@ -16,18 +16,18 @@ const allowedOrigins = ['http://localhost:4200', 'https://solidhome-app.onrender
  * oraz obsługuje przesyłanie poświadczeń (cookies/tokeny).
  */
 const corsOptions: CorsOptions = {
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
-    credentials: true,
-    optionsSuccessStatus: 204
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+  credentials: true,
+  optionsSuccessStatus: 204,
 };
 
 /**

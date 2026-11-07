@@ -12,23 +12,28 @@ import { ILightEnergy } from '../../models/lights/lights-energy.model';
  * @property {Number} totalHouseKwh - Łączne zużycie energii dla wszystkich obecnych świateł w domu.
  * @description Schemat Mongoose reprezentujący statystyki zużycia energii oświetlenia w systemie SolidHome.
  */
-const LightEnergySchema = new Schema<ILightEnergy>({
+const LightEnergySchema = new Schema<ILightEnergy>(
+  {
     name: { type: String, required: true },
     timeframe: { type: String, required: true, enum: ['today', 'week', 'month'] },
     totalKwh: { type: Number, required: true, default: 0 },
     chartData: { type: [Number], required: true, default: [] },
     categories: { type: [String], default: [] },
-    topRooms: [{
+    topRooms: [
+      {
         name: { type: String, required: true },
         kwh: { type: Number, required: true, default: 0 },
-        percentage: { type: Number, required: true, default: 0 }
-    }],
+        percentage: { type: Number, required: true, default: 0 },
+      },
+    ],
     lightsKwh: { type: Map, of: Number, default: {} },
     roomsChartData: { type: Map, of: [Number], default: {} },
-    totalHouseKwh: { type: Number, required: true, default: 0 }
-}, {
+    totalHouseKwh: { type: Number, required: true, default: 0 },
+  },
+  {
     timestamps: true,
-    versionKey: false
-});
+    versionKey: false,
+  },
+);
 
 export default model<ILightEnergy>('LightEnergy', LightEnergySchema);

@@ -11,8 +11,8 @@ const isProd = process.env.NODE_ENV === 'production';
  * formacie YYYY-MM-DD HH:mm:ss oraz serializuje wpis do formatu JSON.
  */
 const fileFormat = format.combine(
-    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    format.json()
+  format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  format.json(),
 );
 
 /**
@@ -20,11 +20,11 @@ const fileFormat = format.combine(
  * @description Kolorowany, czytelny format wyjściowy dla konsoli deweloperskiej: [TIMESTAMP] LEVEL: MESSAGE.
  */
 const consoleFormat = format.combine(
-    format.colorize(),
-    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    format.printf(({ timestamp, level, message }) => {
-        return `[${timestamp}] ${level}: ${message}`;
-    })
+  format.colorize(),
+  format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  format.printf(({ timestamp, level, message }) => {
+    return `[${timestamp}] ${level}: ${message}`;
+  }),
 );
 
 /**
@@ -33,26 +33,23 @@ const consoleFormat = format.combine(
  * Zapisuje błędy do logs/error.log, pełną historię do logs/combined.log oraz wyświetla logi w konsoli.
  */
 const logger = createLogger({
-    level: isProd ? 'info' : 'debug',
-    transports: [
+  level: isProd ? 'info' : 'debug',
+  transports: [
+    new transports.Console({
+      format: isProd ? format.json() : consoleFormat,
+    }),
 
-        new transports.Console({
-            format: isProd ? format.json() : consoleFormat
-        }),
+    new transports.File({
+      filename: 'logs/error.log',
+      level: 'error',
+      format: fileFormat,
+    }),
 
-
-        new transports.File({
-            filename: 'logs/error.log',
-            level: 'error',
-            format: fileFormat
-        }),
-
-
-        new transports.File({
-            filename: 'logs/combined.log',
-            format: fileFormat
-        })
-    ]
+    new transports.File({
+      filename: 'logs/combined.log',
+      format: fileFormat,
+    }),
+  ],
 });
 
 export default logger;

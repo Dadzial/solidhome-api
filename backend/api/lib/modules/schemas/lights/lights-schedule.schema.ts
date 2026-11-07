@@ -13,18 +13,18 @@ import { ILightSchedule } from '../../models/lights/lights-schedule.model';
  * @description Schemat Mongoose reprezentujący regułę harmonogramu świateł w systemie SolidHome.
  */
 const LightScheduleSchema = new Schema<ILightSchedule>(
-    {
-        name: { type: String, required: true, trim: true },
-        days: { type: [Number], required: true, default: [] },
-        startTime: { type: String, required: true },
-        endTime: { type: String, required: true },
-        rooms: { type: [String], required: true, default: ['entireHouse'] },
-        active: { type: Boolean, required: true, default: true },
-        userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
-    },
-    {
-        timestamps: true,
-    }
+  {
+    name: { type: String, required: true, trim: true },
+    days: { type: [Number], required: true, default: [] },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    rooms: { type: [String], required: true, default: ['entireHouse'] },
+    active: { type: Boolean, required: true, default: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: false },
+  },
+  {
+    timestamps: true,
+  },
 );
 
 export default model<ILightSchedule>('LightSchedule', LightScheduleSchema);

@@ -6,9 +6,9 @@ import { Types } from 'mongoose';
  * Definiuje strukturę typów TypeScript wykorzystywaną przez schemat Mongoose (UserSchema).
  */
 export interface IUser {
-    _id?: Types.ObjectId;
-    userName: string;
-    email: string;
-    active?: boolean;
-    online?: boolean;
+  _id?: Types.ObjectId;
+  userName: string;
+  email: string;
+  active?: boolean;
+  online?: boolean;
 }

@@ -7,11 +7,14 @@ import { ILight } from '../../models/lights/lights.model';
  * @property {Date} updatedAt - Czas ostatniej zmiany stanu światła generowany przez timestamps.
  * @description Schemat Mongoose reprezentujący bieżący stan punktów świetlnych w systemie SolidHome.
  */
-const LightSchema = new Schema<ILight>({
+const LightSchema = new Schema<ILight>(
+  {
     name: { type: String, required: true, unique: true },
     state: { type: Number, required: true, enum: [0, 1], default: 0 },
-}, {
+  },
+  {
     timestamps: { createdAt: false, updatedAt: true },
-});
+  },
+);
 
 export default model<ILight>('Light', LightSchema);

@@ -1,18 +1,18 @@
-import App from "./app";
-import HealthController from "./controllers/health.controller";
-import UserController from "./controllers/user.controller";
-import LightsController from "./controllers/lights.controller";
-import AirController from "./controllers/air.controller";
-import UserService from "./modules/services/user/user.service";
-import TokenService from "./modules/services/user/token.service";
-import PasswordService from "./modules/services/user/password.service";
-import EmailService from "./modules/services/user/email.service";
-import ResetCodeService from "./modules/services/user/reset-code.service";
-import Controller from "./interfaces/controller.interface";
-import LightsService from "./modules/services/lights/lights.service";
-import LightsHistoryService from "./modules/services/lights/lights-history.service";
-import LightsEnergyService from "./modules/services/lights/lights-energy.service";
-import LightsScheduleService from "./modules/services/lights/lights-schedule.service";
+import App from './app';
+import HealthController from './controllers/health.controller';
+import UserController from './controllers/user.controller';
+import LightsController from './controllers/lights.controller';
+import AirController from './controllers/air.controller';
+import UserService from './modules/services/user/user.service';
+import TokenService from './modules/services/user/token.service';
+import PasswordService from './modules/services/user/password.service';
+import EmailService from './modules/services/user/email.service';
+import ResetCodeService from './modules/services/user/reset-code.service';
+import Controller from './interfaces/controller.interface';
+import LightsService from './modules/services/lights/lights.service';
+import LightsHistoryService from './modules/services/lights/lights-history.service';
+import LightsEnergyService from './modules/services/lights/lights-energy.service';
+import LightsScheduleService from './modules/services/lights/lights-schedule.service';
 
 /**
  * Fabryka inicjalizująca instancje serwisów oraz wstrzykująca je jako zależności do kontrolerów.
@@ -20,22 +20,27 @@ import LightsScheduleService from "./modules/services/lights/lights-schedule.ser
  * @returns Tablica skonfigurowanych kontrolerów aplikacji implementujących interfejs Controller.
  */
 function createControllers(): Controller[] {
-    const userService = new UserService();
-    const tokenService = new TokenService();
-    const passwordService = new PasswordService();
-    const emailService = new EmailService();
-    const resetCodeService = new ResetCodeService();
-    const lightsHistoryService = new LightsHistoryService();
-    const lightsEnergyService = new LightsEnergyService();
-    const lightsScheduleService = new LightsScheduleService();
-    const lightsService = new LightsService(lightsHistoryService, lightsEnergyService);
+  const userService = new UserService();
+  const tokenService = new TokenService();
+  const passwordService = new PasswordService();
+  const emailService = new EmailService();
+  const resetCodeService = new ResetCodeService();
+  const lightsHistoryService = new LightsHistoryService();
+  const lightsEnergyService = new LightsEnergyService();
+  const lightsScheduleService = new LightsScheduleService();
+  const lightsService = new LightsService(lightsHistoryService, lightsEnergyService);
 
-    return [
-        new LightsController(lightsService, lightsHistoryService, lightsEnergyService, lightsScheduleService),
-        new HealthController(),
-        new AirController(),
-        new UserController(userService, tokenService, passwordService, emailService, resetCodeService)
-    ];
+  return [
+    new LightsController(
+      lightsService,
+      lightsHistoryService,
+      lightsEnergyService,
+      lightsScheduleService,
+    ),
+    new HealthController(),
+    new AirController(),
+    new UserController(userService, tokenService, passwordService, emailService, resetCodeService),
+  ];
 }
 
 /**
@@ -48,8 +53,8 @@ const app = new App();
  */
 const controllers = createControllers();
 
-controllers.forEach(controller => {
-    app.app.use("/", controller.router);
+controllers.forEach((controller) => {
+  app.app.use('/', controller.router);
 });
 
 app.listen();

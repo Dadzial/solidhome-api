@@ -10,11 +10,11 @@ import { IToken } from '../../models/user/token.model';
  * @description Schemat Mongoose reprezentujący aktywne sesje autoryzacyjne użytkowników (tokeny JWT).
  */
 const TokenSchema = new Schema<IToken>({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    createDate: { type: Number, required: true },
-    type: { type: String, enum: ['authorization', 'refresh'], required: true },
-    value: { type: String, required: true },
-    expireAt: { type: Date, default: () => new Date(Date.now() + 3600 * 1000), expires: 0 }
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  createDate: { type: Number, required: true },
+  type: { type: String, enum: ['authorization', 'refresh'], required: true },
+  value: { type: String, required: true },
+  expireAt: { type: Date, default: () => new Date(Date.now() + 3600 * 1000), expires: 0 },
 });
 
 export default model<IToken>('Token', TokenSchema);

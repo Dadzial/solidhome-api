@@ -9,16 +9,16 @@ export type EnergyTimeframe = 'today' | 'week' | 'month';
  * Dostarcza zużycie dla jednego wybranego światła lub zbiorczo dla wszystkich świateł do budowy wykresu.
  */
 export interface ILightEnergy {
-    _id?: Types.ObjectId;
-    name: string;
-    timeframe: EnergyTimeframe;
-    totalKwh: number;
-    chartData: number[];
-    categories?: string[];
-    topRooms: ITopRoomEnergy[];
-    lightsKwh: Record<string, number>;
-    roomsChartData?: Record<string, number[]>;
-    totalHouseKwh: number;
-    createdAt?: Date;
-    updatedAt?: Date;
+  _id?: Types.ObjectId;
+  name: string;
+  timeframe: EnergyTimeframe;
+  totalKwh: number;
+  chartData: number[];
+  categories?: string[];
+  topRooms: ITopRoomEnergy[];
+  lightsKwh: Record<string, number>;
+  roomsChartData?: Record<string, number[]>;
+  totalHouseKwh: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

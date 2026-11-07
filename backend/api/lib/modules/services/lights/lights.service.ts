@@ -2,20 +2,20 @@ import LightModel from '../../schemas/lights/lights.schema';
 import { ILight } from '../../models/lights/lights.model';
 import { Types } from 'mongoose';
 import logger from '../../../utils/logger';
-import LightsHistoryService from "./lights-history.service";
-import LightsEnergyService from "./lights-energy.service";
+import LightsHistoryService from './lights-history.service';
+import LightsEnergyService from './lights-energy.service';
 
 /**
  * @const DEFAULT_LIGHTS
  * @description Domyślna lista punktów świetlnych w domu, mapowana 1:1 na wyjścia GPIO w SolidHome.c.
  */
 export const DEFAULT_LIGHTS = [
-    'living_room',
-    'kitchen',
-    'boiler_room',
-    'bathroom',
-    'hallway',
-    'garage'
+  'living_room',
+  'kitchen',
+  'boiler_room',
+  'bathroom',
+  'hallway',
+  'garage',
 ];
 
 /**
@@ -25,94 +25,93 @@ export const DEFAULT_LIGHTS = [
  * oraz delegowanie zdarzeń przełączeń do serwisu historii i naliczania energii.
  */
 class LightsService {
+  /**
+   * @constructor
+   * @param lightsHistoryService - Serwis odpowiedzialny za rejestrowanie historii zdarzeń przełączeń świateł.
+   * @param lightsEnergyService - Opcjonalny serwis odpowiedzialny za naliczanie zużycia energii.
+   */
+  constructor(
+    private lightsHistoryService: LightsHistoryService,
+    private lightsEnergyService?: LightsEnergyService,
+  ) {
+    this.initDefaultLights();
+  }
 
-    /**
-     * @constructor
-     * @param lightsHistoryService - Serwis odpowiedzialny za rejestrowanie historii zdarzeń przełączeń świateł.
-     * @param lightsEnergyService - Opcjonalny serwis odpowiedzialny za naliczanie zużycia energii.
-     */
-    constructor(
-        private lightsHistoryService: LightsHistoryService,
-        private lightsEnergyService?: LightsEnergyService
-    ) {
-        this.initDefaultLights();
+  /**
+   * Inicjalizuje domyślne punkty świetlne w bazie danych przy pierwszym starcie serwera.
+   * Dzięki operatorowi $setOnInsert tworzy dokumenty ze stanem 0 tylko jeśli nie istnieją,
+   * nie nadpisując włączonych świateł przy kolejnych restartach aplikacji.
+   * @private
+   */
+  private async initDefaultLights(): Promise<void> {
+    try {
+      for (const name of DEFAULT_LIGHTS) {
+        await LightModel.updateOne({ name }, { $setOnInsert: { state: 0 } }, { upsert: true });
+      }
+    } catch (error) {
+      logger.error('Error initializing default lights:', error);
+    }
+  }
+
+  /**
+   * Pobiera stany wszystkich świateł w płaskim formacie klucz-wartość dla mikrokontrolera (SolidHome.c).
+   * Zoptymalizowany pod kątem biblioteki cJSON (np. { living_room: 0, kitchen: 1 }).
+   *
+   * @returns Promise<Record<string, number>>
+   */
+  public async sendLightsStatusToHardware(): Promise<Record<string, number>> {
+    const lights = await LightModel.find({}, 'name state').lean();
+
+    const statusMap: Record<string, number> = {};
+    for (const light of lights) {
+      statusMap[light.name] = light.state;
     }
 
-    /**
-     * Inicjalizuje domyślne punkty świetlne w bazie danych przy pierwszym starcie serwera.
-     * Dzięki operatorowi $setOnInsert tworzy dokumenty ze stanem 0 tylko jeśli nie istnieją,
-     * nie nadpisując włączonych świateł przy kolejnych restartach aplikacji.
-     * @private
-     */
-    private async initDefaultLights(): Promise<void> {
-        try {
-            for (const name of DEFAULT_LIGHTS) {
-                await LightModel.updateOne(
-                    { name },
-                    { $setOnInsert: { state: 0 } },
-                    { upsert: true }
-                );
-            }
-        } catch (error) {
-            logger.error('Error initializing default lights:', error);
-        }
+    return statusMap;
+  }
+
+  /**
+   * Pobiera pełną listę świateł dla interfejsu aplikacji użytkownika.
+   *
+   * @returns Promise<ILight[]>
+   */
+  public async sendLightsStatusToApps(): Promise<ILight[]> {
+    return await LightModel.find().lean();
+  }
+
+  /**
+   * Zmienia stan fizyczny światła (włącz/wyłącz).
+   * Jeśli stan faktycznie uległ zmianie, aktualizuje dokument w bazie i automatycznie
+   * rejestruje wpis w historii przez LightsHistoryService.
+   *
+   * @param name - Nazwa przełączanego światła (np. 'living_room').
+   * @param newState - Nowy stan zasilania: 0 (wyłączone) lub 1 (włączone).
+   * @param userId - Opcjonalny identyfikator zalogowanego użytkownika dokonującego zmiany.
+   * @returns Promise<ILight> Zaktualizowany dokument światła.
+   * @throws Error gdy światło o podanej nazwie nie istnieje w bazie.
+   */
+  public async updateLightState(
+    name: string,
+    newState: number,
+    userId?: Types.ObjectId,
+  ): Promise<ILight> {
+    const light = await LightModel.findOne({ name });
+    if (!light) {
+      throw new Error(`Light with "${name}" not found`);
     }
 
-    /**
-     * Pobiera stany wszystkich świateł w płaskim formacie klucz-wartość dla mikrokontrolera (SolidHome.c).
-     * Zoptymalizowany pod kątem biblioteki cJSON (np. { living_room: 0, kitchen: 1 }).
-     *
-     * @returns Promise<Record<string, number>>
-     */
-    public async sendLightsStatusToHardware(): Promise<Record<string, number>> {
-        const lights = await LightModel.find({}, 'name state').lean();
+    if (light.state !== newState) {
+      light.state = newState;
+      await light.save();
 
-        const statusMap: Record<string, number> = {};
-        for (const light of lights) {
-            statusMap[light.name] = light.state;
-        }
+      await this.lightsHistoryService.addHistoryEntry(name, newState, userId);
 
-        return statusMap;
+      if (this.lightsEnergyService) {
+        await this.lightsEnergyService.accumulateEnergyOnStateChange(name, newState);
+      }
     }
-
-    /**
-     * Pobiera pełną listę świateł dla interfejsu aplikacji użytkownika.
-     *
-     * @returns Promise<ILight[]>
-     */
-    public async sendLightsStatusToApps(): Promise<ILight[]> {
-        return await LightModel.find().lean();
-    }
-
-    /**
-     * Zmienia stan fizyczny światła (włącz/wyłącz).
-     * Jeśli stan faktycznie uległ zmianie, aktualizuje dokument w bazie i automatycznie
-     * rejestruje wpis w historii przez LightsHistoryService.
-     *
-     * @param name - Nazwa przełączanego światła (np. 'living_room').
-     * @param newState - Nowy stan zasilania: 0 (wyłączone) lub 1 (włączone).
-     * @param userId - Opcjonalny identyfikator zalogowanego użytkownika dokonującego zmiany.
-     * @returns Promise<ILight> Zaktualizowany dokument światła.
-     * @throws Error gdy światło o podanej nazwie nie istnieje w bazie.
-     */
-    public async updateLightState(name: string, newState: number, userId?: Types.ObjectId): Promise<ILight> {
-        const light = await LightModel.findOne({ name });
-        if (!light) {
-            throw new Error(`Light with "${name}" not found`);
-        }
-
-        if (light.state !== newState) {
-            light.state = newState;
-            await light.save();
-
-            await this.lightsHistoryService.addHistoryEntry(name, newState, userId);
-
-            if (this.lightsEnergyService) {
-                await this.lightsEnergyService.accumulateEnergyOnStateChange(name, newState);
-            }
-        }
-        return light;
-    }
+    return light;
+  }
 }
 
 export default LightsService;

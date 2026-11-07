@@ -1,21 +1,21 @@
-import { Request, Response, Router } from "express";
-import UserService from "../modules/services/user/user.service";
-import PasswordService from "../modules/services/user/password.service";
-import TokenService from "../modules/services/user/token.service";
-import EmailService from "../modules/services/user/email.service";
-import ResetCodeService from "../modules/services/user/reset-code.service";
-import {auth, AuthRequest} from "../middlewares/auth.middleware";
+import { Request, Response, Router } from 'express';
+import UserService from '../modules/services/user/user.service';
+import PasswordService from '../modules/services/user/password.service';
+import TokenService from '../modules/services/user/token.service';
+import EmailService from '../modules/services/user/email.service';
+import ResetCodeService from '../modules/services/user/reset-code.service';
+import { auth, AuthRequest } from '../middlewares/auth.middleware';
 import {
-    authLimiter,
-    createAccountLimiter,
-    passwordResetLimiter,
-    updateAccountLimiter
-} from "../middlewares/rate-limiter.middleware";
-import Controller from '../interfaces/controller.interface'
-import { IUser } from "../modules/models/user/user.model";
+  authLimiter,
+  createAccountLimiter,
+  passwordResetLimiter,
+  updateAccountLimiter,
+} from '../middlewares/rate-limiter.middleware';
+import Controller from '../interfaces/controller.interface';
+import { IUser } from '../modules/models/user/user.model';
 import logger from '../utils/logger';
 import Joi from 'joi';
-import resetCodeService from "../modules/services/user/reset-code.service";
+import resetCodeService from '../modules/services/user/reset-code.service';
 
 /**
  * @class UserController
@@ -24,352 +24,372 @@ import resetCodeService from "../modules/services/user/reset-code.service";
  * rejestrację, logowanie, procedurę resetowania hasła oraz wylogowanie (unieważnienie sesji).
  */
 class UserController implements Controller {
-    /** Główna ścieżka bazowa dla tras użytkownika */
-    path = '/api/user';
-    /** Router Express do obsługi tras */
-    router = Router();
+  /** Główna ścieżka bazowa dla tras użytkownika */
+  path = '/api/user';
+  /** Router Express do obsługi tras */
+  router = Router();
 
-    /**
-     * @constructor
-     * @param userService - Serwis operacji na danych użytkownika
-     * @param tokenService - Serwis generowania i unieważniania tokenów JWT
-     * @param passwordService - Serwis hashowania i autoryzacji haseł
-     * @param emailService - Serwis wysyłki powiadomień i kodów e-mail
-     * @param resetCodeService - Serwis zarządzania kodami resetu hasła
-     */
-    constructor(
-        private userService: UserService,
-        private tokenService: TokenService,
-        private passwordService: PasswordService,
-        private emailService: EmailService,
-        private resetCodeService: ResetCodeService
-    ) {
-        this.initializeRouters();
+  /**
+   * @constructor
+   * @param userService - Serwis operacji na danych użytkownika
+   * @param tokenService - Serwis generowania i unieważniania tokenów JWT
+   * @param passwordService - Serwis hashowania i autoryzacji haseł
+   * @param emailService - Serwis wysyłki powiadomień i kodów e-mail
+   * @param resetCodeService - Serwis zarządzania kodami resetu hasła
+   */
+  constructor(
+    private userService: UserService,
+    private tokenService: TokenService,
+    private passwordService: PasswordService,
+    private emailService: EmailService,
+    private resetCodeService: ResetCodeService,
+  ) {
+    this.initializeRouters();
+  }
+
+  /**
+   * Inicjalizuje i rejestruje trasy kontrolera wraz z middleware'ami (rate limitery, auth).
+   * @private
+   */
+  private initializeRouters(): void {
+    this.router.post(`${this.path}/create`, createAccountLimiter, this.createNew);
+    this.router.post(`${this.path}/update`, auth, updateAccountLimiter, this.updateUser);
+    this.router.post(`${this.path}/auth`, authLimiter, this.authenticate);
+    this.router.post(`${this.path}/auth/refresh`, this.refreshAuthenticate);
+    this.router.post(`${this.path}/reset/code`, passwordResetLimiter, this.sendVerificationCode);
+    this.router.post(`${this.path}/reset/password`, passwordResetLimiter, this.resetPassword);
+    this.router.delete(`${this.path}/logout`, auth, this.removeHashSession);
+  }
+
+  /**
+   * Rejestracja nowego użytkownika w systemie.
+   * @route POST /api/user/create
+   * @access Private
+   * @param req - Zapytanie Express (oczekuje w body: email, userName, password)
+   * @param res - Odpowiedź Express z utworzonym obiektem użytkownika
+   * @returns 200 - Pomyślnie utworzono konto, 400 - Błąd walidacji lub tworzenia
+   */
+  private createNew = async (req: Request, res: Response): Promise<Response> => {
+    const schema = Joi.object({
+      email: Joi.string().email().required(),
+      userName: Joi.string().alphanum().min(3).max(30).required(),
+      password: Joi.string().min(8).required(),
+    });
+
+    const { error, value } = schema.validate(req.body);
+
+    if (error) {
+      logger.error(`Validation error during user creation: ${error.message}`);
+      return res
+        .status(400)
+        .json({ error: 'Validation failed', details: error.details.map((d) => d.message) });
     }
 
-    /**
-     * Inicjalizuje i rejestruje trasy kontrolera wraz z middleware'ami (rate limitery, auth).
-     * @private
-     */
-    private initializeRouters(): void {
-        this.router.post(`${this.path}/create`, createAccountLimiter, this.createNew);
-        this.router.post(`${this.path}/update`, auth, updateAccountLimiter, this.updateUser);
-        this.router.post(`${this.path}/auth`, authLimiter, this.authenticate);
-        this.router.post(`${this.path}/auth/refresh`, this.refreshAuthenticate);
-        this.router.post(`${this.path}/reset/code`, passwordResetLimiter, this.sendVerificationCode);
-        this.router.post(`${this.path}/reset/password`, passwordResetLimiter, this.resetPassword);
-        this.router.delete(`${this.path}/logout`, auth, this.removeHashSession);
-    }
+    const { email, userName, password } = value;
 
-    /**
-     * Rejestracja nowego użytkownika w systemie.
-     * @route POST /api/user/create
-     * @access Private
-     * @param req - Zapytanie Express (oczekuje w body: email, userName, password)
-     * @param res - Odpowiedź Express z utworzonym obiektem użytkownika
-     * @returns 200 - Pomyślnie utworzono konto, 400 - Błąd walidacji lub tworzenia
-     */
-    private createNew = async (req: Request, res: Response): Promise<Response> => {
-        const schema = Joi.object({
-            email: Joi.string().email().required(),
-            userName: Joi.string().alphanum().min(3).max(30).required(),
-            password: Joi.string().min(8).required()
+    try {
+      const user = await this.userService.create({ email, userName });
+
+      if (!user || !user._id) {
+        return res.status(400).json({ error: 'Bad request' });
+      }
+
+      if (password) {
+        await this.passwordService.createOrUpdate({
+          userId: user._id,
+          password: password,
         });
+      }
+      return res.status(200).json(user);
+    } catch (error) {
+      logger.error('Error creating user:', error);
+      return res.status(400).json({
+        error: 'Bad request',
+        value: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
 
-        const { error, value } = schema.validate(req.body);
+  /**
+   * Aktualizacja danych użytkownika (np. e-mail, nazwa użytkownika, hasło).
+   * @route POST /api/user/update
+   * @access Private
+   * @param req - Zapytanie Express z nagłówkiem autoryzacyjnym (oczekuje w body: email?, userName?, currentPassword?, password?)
+   * @param res - Odpowiedź Express z zaktualizowanym obiektem użytkownika
+   * @returns 200 - Pomyślnie zaktualizowano konto, 400 - Błąd walidacji, 401 - Nieautoryzowany, 409 - Duplikat, 500 - Błąd serwera
+   */
+  private updateUser = async (req: AuthRequest, res: Response): Promise<Response> => {
+    const schema = Joi.object({
+      email: Joi.string().email().optional(),
+      userName: Joi.string().alphanum().min(3).max(30).optional(),
+      currentPassword: Joi.string().optional(),
+      password: Joi.string().min(8).optional(),
+    }).min(1);
 
-        if (error) {
-            logger.error(`Validation error during user creation: ${error.message}`);
-            return res.status(400).json({ error: "Validation failed", details: error.details.map(d => d.message) });
-        }
+    const { error, value } = schema.validate(req.body);
 
-        const { email, userName, password } = value;
-
-        try{
-            const user = await this.userService.create({ email, userName });
-
-            if (!user || !user._id) {
-                return res.status(400).json({ error: "Bad request" });
-            }
-
-            if (password) {
-                await this.passwordService.createOrUpdate({
-                    userId: user._id,
-                    password: password,
-                });
-            }
-            return res.status(200).json(user);
-
-        } catch (error) {
-            logger.error("Error creating user:", error);
-            return res.status(400).json({ error: "Bad request", value: error instanceof Error ? error.message : 'Unknown error' });
-        }
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.details.map((d) => d.message) });
     }
 
-
-    /**
-     * Aktualizacja danych użytkownika (np. e-mail, nazwa użytkownika, hasło).
-     * @route POST /api/user/update
-     * @access Private
-     * @param req - Zapytanie Express z nagłówkiem autoryzacyjnym (oczekuje w body: email?, userName?, currentPassword?, password?)
-     * @param res - Odpowiedź Express z zaktualizowanym obiektem użytkownika
-     * @returns 200 - Pomyślnie zaktualizowano konto, 400 - Błąd walidacji, 401 - Nieautoryzowany, 409 - Duplikat, 500 - Błąd serwera
-     */
-    private updateUser = async (req: AuthRequest, res: Response): Promise<Response> => {
-        const schema = Joi.object({
-            email: Joi.string().email().optional(),
-            userName: Joi.string().alphanum().min(3).max(30).optional(),
-            currentPassword: Joi.string().optional(),
-            password: Joi.string().min(8).optional()
-        }).min(1);
-
-        const { error, value } = schema.validate(req.body);
-
-        if (error) {
-            return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
-        }
-
-        const userId = req.user?.userId;
-        if (!userId) {
-            return res.status(401).json({ error: "Unauthorized" });
-        }
-
-        const { email, userName, currentPassword, password } = value;
-
-        try {
-            if (userName || email) {
-                const isTaken = await this.userService.isEmailOrNameTakenByOther(userId, email, userName);
-                if (isTaken) {
-                    return res.status(409).json({ error: "Email or userName is already in use" });
-                }
-            }
-
-            if (password) {
-                if (!currentPassword) {
-                    return res.status(400).json({ error: "Current password is required" });
-                }
-
-                const isAuthorized = await this.passwordService.authorize(userId, currentPassword);
-                if (!isAuthorized) {
-                    return res.status(401).json({ error: "Invalid current password" });
-                }
-
-                await this.passwordService.createOrUpdate({
-                    userId,
-                    password
-                });
-            }
-
-            const updateData: Partial<IUser> = {};
-            if (email) updateData.email = email;
-            if (userName) updateData.userName = userName;
-
-            let updatedUser: IUser | null = null;
-            if (Object.keys(updateData).length > 0) {
-                updatedUser = await this.userService.update(userId, updateData);
-                if (!updatedUser) {
-                    return res.status(404).json({ error: "User not found" });
-                }
-            } else {
-                updatedUser = await this.userService.getById(userId);
-                if (!updatedUser && req.user.email) {
-                    updatedUser = await this.userService.getByEmailOrName(req.user.email);
-                }
-            }
-
-            return res.status(200).json({
-                _id: updatedUser?._id,
-                email: updatedUser?.email,
-                userName: updatedUser?.userName
-            });
-
-        } catch (error) {
-            logger.error(`Update User Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            return res.status(500).json({ error: "Internal server error" });
-        }
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    /**
-     * Uwierzytelnienie użytkownika (logowanie) i wygenerowanie tokenu JWT.
-     * @route POST /api/user/auth
-     * @access Private
-     * @param req - Zapytanie Express (oczekuje w body: userName, password, rememberMe?)
-     * @param res - Odpowiedź Express z wygenerowanym tokenem JWT
-     * @returns 200 - Zalogowano pomyślnie, 400 - Błędne dane, 401 - Niepoprawne poświadczenia
-     */
-    private authenticate = async (req: Request, res: Response): Promise<void | Response> => {
-        const schema = Joi.object({
-            userName: Joi.string().required(),
-            password: Joi.string().required(),
-            rememberMe: Joi.boolean().optional(),
+    const { email, userName, currentPassword, password } = value;
+
+    try {
+      if (userName || email) {
+        const isTaken = await this.userService.isEmailOrNameTakenByOther(userId, email, userName);
+        if (isTaken) {
+          return res.status(409).json({ error: 'Email or userName is already in use' });
+        }
+      }
+
+      if (password) {
+        if (!currentPassword) {
+          return res.status(400).json({ error: 'Current password is required' });
+        }
+
+        const isAuthorized = await this.passwordService.authorize(userId, currentPassword);
+        if (!isAuthorized) {
+          return res.status(401).json({ error: 'Invalid current password' });
+        }
+
+        await this.passwordService.createOrUpdate({
+          userId,
+          password,
         });
+      }
 
-        const { error, value } = schema.validate(req.body);
+      const updateData: Partial<IUser> = {};
+      if (email) updateData.email = email;
+      if (userName) updateData.userName = userName;
 
-        if (error) {
-            return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
+      let updatedUser: IUser | null = null;
+      if (Object.keys(updateData).length > 0) {
+        updatedUser = await this.userService.update(userId, updateData);
+        if (!updatedUser) {
+          return res.status(404).json({ error: 'User not found' });
         }
-
-        const { userName, password, rememberMe } = value;
-
-        try {
-            const user = await this.userService.getByEmailOrName(userName);
-
-            if (!user || !user._id) {
-                return res.status(401).json({ error: "Unauthorized" });
-            }
-
-            const isAuthorized = await this.passwordService.authorize(user._id, password);
-            if (!isAuthorized) {
-                return res.status(401).json({ error: 'Unauthorized' });
-            }
-            const token = await this.tokenService.create(user._id, user.email, user.userName, rememberMe);
-            res.status(200).json(this.tokenService.getToken(token));
-
-        } catch (error) {
-            logger.error(`Authentication Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            return res.status(401).json({ error: "Unauthorized" });
+      } else {
+        updatedUser = await this.userService.getById(userId);
+        if (!updatedUser && req.user.email) {
+          updatedUser = await this.userService.getByEmailOrName(req.user.email);
         }
+      }
+
+      return res.status(200).json({
+        _id: updatedUser?._id,
+        email: updatedUser?.email,
+        userName: updatedUser?.userName,
+      });
+    } catch (error) {
+      logger.error(
+        `Update User Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  /**
+   * Uwierzytelnienie użytkownika (logowanie) i wygenerowanie tokenu JWT.
+   * @route POST /api/user/auth
+   * @access Private
+   * @param req - Zapytanie Express (oczekuje w body: userName, password, rememberMe?)
+   * @param res - Odpowiedź Express z wygenerowanym tokenem JWT
+   * @returns 200 - Zalogowano pomyślnie, 400 - Błędne dane, 401 - Niepoprawne poświadczenia
+   */
+  private authenticate = async (req: Request, res: Response): Promise<void | Response> => {
+    const schema = Joi.object({
+      userName: Joi.string().required(),
+      password: Joi.string().required(),
+      rememberMe: Joi.boolean().optional(),
+    });
+
+    const { error, value } = schema.validate(req.body);
+
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.details.map((d) => d.message) });
     }
 
-    /**
-     * Odświeżenie tokenu JWT na podstawie istniejącego tokenu.
-     * @route POST /api/user/auth/refresh
-     * @access Private
-     * @param req - Zapytanie Express (oczekuje w body: token)
-     * @param res - Odpowiedź Express z nowym tokenem JWT
-     * @returns 200 - Token odświeżony pomyślnie, 400 - Brak tokenu, 401 - Niepoprawny/wygasły token
-     */
-    private refreshAuthenticate = async (req: Request, res: Response): Promise<void | Response> => {
-        const schema = Joi.object({
-            refreshToken: Joi.string().required()
-        });
+    const { userName, password, rememberMe } = value;
 
-        const { error, value } = schema.validate(req.body);
-        if (error) {
-            return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
-        }
+    try {
+      const user = await this.userService.getByEmailOrName(userName);
 
-        try {
-            const tokens = await this.tokenService.refresh(value.refreshToken);
-            return res.status(200).json(tokens);
-        } catch (err) {
-            return res.status(401).json({ error: "Invalid or expired refresh token" });
-        }
-    };
+      if (!user || !user._id) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
+      const isAuthorized = await this.passwordService.authorize(user._id, password);
+      if (!isAuthorized) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const token = await this.tokenService.create(user._id, user.email, user.userName, rememberMe);
+      res.status(200).json(this.tokenService.getToken(token));
+    } catch (error) {
+      logger.error(
+        `Authentication Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  };
 
-    /**
-     * Wysłanie 6-cyfrowego kodu weryfikacyjnego na podany adres e-mail w celu resetu hasła.
-     * @route POST /api/user/reset/code
-     * @access Private
-     * @param req - Zapytanie Express (oczekuje w body: email)
-     * @param res - Odpowiedź Express z komunikatem o wysłaniu kodu
-     * @returns 200 - Kod wysłany (lub informacja neutralna ze względów bezpieczeństwa), 400/500 - Błąd
-     */
-    private sendVerificationCode = async (req: Request, res: Response): Promise<Response> => {
-        const schema = Joi.object({
-            email: Joi.string().email().required()
-        });
+  /**
+   * Odświeżenie tokenu JWT na podstawie istniejącego tokenu.
+   * @route POST /api/user/auth/refresh
+   * @access Private
+   * @param req - Zapytanie Express (oczekuje w body: token)
+   * @param res - Odpowiedź Express z nowym tokenem JWT
+   * @returns 200 - Token odświeżony pomyślnie, 400 - Brak tokenu, 401 - Niepoprawny/wygasły token
+   */
+  private refreshAuthenticate = async (req: Request, res: Response): Promise<void | Response> => {
+    const schema = Joi.object({
+      refreshToken: Joi.string().required(),
+    });
 
-        const { error, value } = schema.validate(req.body);
-
-        if (error) {
-            return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
-        }
-
-        const { email } = value;
-
-        try {
-            const user = await this.userService.getByEmailOrName(email);
-
-            if (!user || !user._id) {
-                return res.status(200).json({ message: "If a user with that email exists, a code has been sent." });
-            }
-
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
-            await this.resetCodeService.create(user._id, code);
-            await this.emailService.sendPasswordResetCode(user.email, code);
-
-            return res.status(200).json({ message: "Verification code sent successfully" });
-        } catch (error) {
-            logger.error(`Send Verification Code Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            return res.status(500).json({ error: "Internal server error" });
-        }
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.details.map((d) => d.message) });
     }
 
-    /**
-     * Zmiana hasła użytkownika na podstawie otrzymanego kodu weryfikacyjnego.
-     * @route POST /api/user/reset/password
-     * @access Private
-     * @param req - Zapytanie Express (oczekuje w body: code, password)
-     * @param res - Odpowiedź Express z potwierdzeniem zmiany hasła
-     * @returns 200 - Hasło zmienione, 400 - Niepoprawny/wygasły kod, 500 - Błąd serwera
-     */
-    private resetPassword = async (req: Request, res: Response): Promise<Response> => {
-        const schema = Joi.object({
-            code: Joi.string().length(6).required(),
-            password: Joi.string().min(8).required()
-        });
+    try {
+      const tokens = await this.tokenService.refresh(value.refreshToken);
+      return res.status(200).json(tokens);
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
+  };
 
-        const { error, value } = schema.validate(req.body);
+  /**
+   * Wysłanie 6-cyfrowego kodu weryfikacyjnego na podany adres e-mail w celu resetu hasła.
+   * @route POST /api/user/reset/code
+   * @access Private
+   * @param req - Zapytanie Express (oczekuje w body: email)
+   * @param res - Odpowiedź Express z komunikatem o wysłaniu kodu
+   * @returns 200 - Kod wysłany (lub informacja neutralna ze względów bezpieczeństwa), 400/500 - Błąd
+   */
+  private sendVerificationCode = async (req: Request, res: Response): Promise<Response> => {
+    const schema = Joi.object({
+      email: Joi.string().email().required(),
+    });
 
-        if (error) {
-            return res.status(400).json({ error: "Invalid input", details: error.details.map(d => d.message) });
-        }
+    const { error, value } = schema.validate(req.body);
 
-        const { code, password } = value;
-
-        try {
-            const resetCodeEntry = await this.resetCodeService.getByCode(code);
-
-            if (!resetCodeEntry) {
-                return res.status(400).json({ error: "Invalid or expired code" });
-            }
-
-            await this.passwordService.createOrUpdate({
-                userId: resetCodeEntry.userId,
-                password: password
-            });
-
-            if (resetCodeEntry._id) {
-                await this.resetCodeService.deleteCode(resetCodeEntry._id);
-            }
-
-            return res.status(200).json({ message: "Password reset successfully" });
-        } catch (error) {
-            logger.error(`Reset Password Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            return res.status(500).json({ error: "Internal server error" });
-        }
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.details.map((d) => d.message) });
     }
 
-    /**
-     * Wylogowanie użytkownika i unieważnienie aktywnej sesji tokenu JWT.
-     * @route DELETE /api/user/logout
-     * @access Private (wymaga nagłówka Authorization z Bearer tokenem)
-     * @param req - Zapytanie Express z nagłówkiem autoryzacyjnym
-     * @param res - Odpowiedź Express z potwierdzeniem wylogowania
-     * @returns 200 - Wylogowano pomyślnie, 400 - Brak tokenu, 401 - Błąd autoryzacji
-     */
-    private removeHashSession = async (req: AuthRequest, res: Response): Promise<Response> => {
-        try {
-            let token = req.headers['x-access-token'] || req.headers['authorization'];
+    const { email } = value;
 
-            if (token && typeof token === 'string' && token.startsWith('Bearer ')) {
-                token = token.slice(7, token.length);
-            }
-            if (!token || typeof token !== 'string') {
-                return res.status(400).json({ error: "No token provided" });
-            }
+    try {
+      const user = await this.userService.getByEmailOrName(email);
 
-            const result = await this.tokenService.remove(token);
-            logger.info("User session removed", result);
-            return res.status(200).json({ message: "Logged out successfully" });
-        } catch (error) {
-            logger.error("Error removing user session", error);
-            return res.status(401).json({ error: "Unauthorized" });
-        }
+      if (!user || !user._id) {
+        return res
+          .status(200)
+          .json({ message: 'If a user with that email exists, a code has been sent.' });
+      }
+
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      await this.resetCodeService.create(user._id, code);
+      await this.emailService.sendPasswordResetCode(user.email, code);
+
+      return res.status(200).json({ message: 'Verification code sent successfully' });
+    } catch (error) {
+      logger.error(
+        `Send Verification Code Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return res.status(500).json({ error: 'Internal server error' });
     }
+  };
+
+  /**
+   * Zmiana hasła użytkownika na podstawie otrzymanego kodu weryfikacyjnego.
+   * @route POST /api/user/reset/password
+   * @access Private
+   * @param req - Zapytanie Express (oczekuje w body: code, password)
+   * @param res - Odpowiedź Express z potwierdzeniem zmiany hasła
+   * @returns 200 - Hasło zmienione, 400 - Niepoprawny/wygasły kod, 500 - Błąd serwera
+   */
+  private resetPassword = async (req: Request, res: Response): Promise<Response> => {
+    const schema = Joi.object({
+      code: Joi.string().length(6).required(),
+      password: Joi.string().min(8).required(),
+    });
+
+    const { error, value } = schema.validate(req.body);
+
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: 'Invalid input', details: error.details.map((d) => d.message) });
+    }
+
+    const { code, password } = value;
+
+    try {
+      const resetCodeEntry = await this.resetCodeService.getByCode(code);
+
+      if (!resetCodeEntry) {
+        return res.status(400).json({ error: 'Invalid or expired code' });
+      }
+
+      await this.passwordService.createOrUpdate({
+        userId: resetCodeEntry.userId,
+        password: password,
+      });
+
+      if (resetCodeEntry._id) {
+        await this.resetCodeService.deleteCode(resetCodeEntry._id);
+      }
+
+      return res.status(200).json({ message: 'Password reset successfully' });
+    } catch (error) {
+      logger.error(
+        `Reset Password Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  /**
+   * Wylogowanie użytkownika i unieważnienie aktywnej sesji tokenu JWT.
+   * @route DELETE /api/user/logout
+   * @access Private (wymaga nagłówka Authorization z Bearer tokenem)
+   * @param req - Zapytanie Express z nagłówkiem autoryzacyjnym
+   * @param res - Odpowiedź Express z potwierdzeniem wylogowania
+   * @returns 200 - Wylogowano pomyślnie, 400 - Brak tokenu, 401 - Błąd autoryzacji
+   */
+  private removeHashSession = async (req: AuthRequest, res: Response): Promise<Response> => {
+    try {
+      let token = req.headers['x-access-token'] || req.headers['authorization'];
+
+      if (token && typeof token === 'string' && token.startsWith('Bearer ')) {
+        token = token.slice(7, token.length);
+      }
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ error: 'No token provided' });
+      }
+
+      const result = await this.tokenService.remove(token);
+      logger.info('User session removed', result);
+      return res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+      logger.error('Error removing user session', error);
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  };
 }
 
 export default UserController;

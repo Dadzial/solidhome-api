@@ -6,6 +6,6 @@ import { Types } from 'mongoose';
  * Definiuje strukturę typów TypeScript wykorzystywaną przez schemat Mongoose (PasswordSchema).
  */
 export interface IPassword {
-    userId: Types.ObjectId;
-    password: string;
+  userId: Types.ObjectId;
+  password: string;
 }

@@ -9,7 +9,7 @@ import { config } from '../config';
  * zawierające zdekodowane dane użytkownika po pomyślnej weryfikacji tokenu JWT.
  */
 export interface AuthRequest extends Request {
-    user?: any;
+  user?: any;
 }
 
 /**
@@ -24,27 +24,31 @@ export interface AuthRequest extends Request {
  * W przypadku braku tokenu lub jego nieważności odsyła kod błędu 401 (Unauthorized).
  * @returns {Promise<void | Response>} Zwraca `void` w przypadku pomyślnej autoryzacji lub odpowiedź Express z kodem 401 w przypadku błędu.
  */
-export const auth = async (request: Request, response: Response, next: NextFunction): Promise<void | Response> => {
-    let token = request.headers['x-access-token'] || request.headers['authorization'];
-    if (token && typeof token === 'string') {
-        if (token.startsWith('Bearer ')) {
-            token = token.slice(7, token.length);
-        }
-        try {
-            const decoded = jwt.verify(token, config.jwtSecret);
-
-            const TokenModel = (await import('../modules/schemas/user/token.schema')).default;
-            const tokenExists = await TokenModel.findOne({ value: token, type: 'authorization' });
-            if (!tokenExists) {
-                return response.status(401).send('Invalid or expired token.');
-            }
-            
-            (request as AuthRequest).user = decoded;
-            next();
-        } catch (ex) {
-            return response.status(401).send('Invalid token.');
-        }
-    } else {
-        return response.status(401).send('Access denied. No token provided.');
+export const auth = async (
+  request: Request,
+  response: Response,
+  next: NextFunction,
+): Promise<void | Response> => {
+  let token = request.headers['x-access-token'] || request.headers['authorization'];
+  if (token && typeof token === 'string') {
+    if (token.startsWith('Bearer ')) {
+      token = token.slice(7, token.length);
     }
+    try {
+      const decoded = jwt.verify(token, config.jwtSecret);
+
+      const TokenModel = (await import('../modules/schemas/user/token.schema')).default;
+      const tokenExists = await TokenModel.findOne({ value: token, type: 'authorization' });
+      if (!tokenExists) {
+        return response.status(401).send('Invalid or expired token.');
+      }
+
+      (request as AuthRequest).user = decoded;
+      next();
+    } catch (ex) {
+      return response.status(401).send('Invalid token.');
+    }
+  } else {
+    return response.status(401).send('Access denied. No token provided.');
+  }
 };

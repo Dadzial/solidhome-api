@@ -1,4 +1,4 @@
-import {Types} from 'mongoose';
+import { Types } from 'mongoose';
 
 /**
  * @interface ILightHistory
@@ -6,9 +6,9 @@ import {Types} from 'mongoose';
  * Definiuje strukturę typów TypeScript wykorzystywaną przez schemat Mongoose (LightHistorySchema).
  */
 export interface ILightHistory {
-    _id?: Types.ObjectId;
-    name: string;
-    state: number;
-    userId?: Types.ObjectId;
-    createdAt?: Date;
+  _id?: Types.ObjectId;
+  name: string;
+  state: number;
+  userId?: Types.ObjectId;
+  createdAt?: Date;
 }

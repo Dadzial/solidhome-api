@@ -1,4 +1,4 @@
-import {Router} from "express";
+import { Router } from 'express';
 
 /**
  *  @interface Controller
@@ -7,8 +7,8 @@ import {Router} from "express";
  *  @description interface który reprezentuje to co każdy controller powinien implementować
  */
 interface Controller {
-    path: string;
-    router: Router;
+  path: string;
+  router: Router;
 }
 
 export default Controller;

@@ -6,8 +6,8 @@ import { Types } from 'mongoose';
  * Definiuje strukturę typów TypeScript wykorzystywaną przez schemat Mongoose (ResetCodeSchema).
  */
 export interface IResetCode {
-    _id?: Types.ObjectId;
-    userId: Types.ObjectId;
-    code: string;
-    createdAt?: Date;
+  _id?: Types.ObjectId;
+  userId: Types.ObjectId;
+  code: string;
+  createdAt?: Date;
 }

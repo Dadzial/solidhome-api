@@ -9,10 +9,10 @@ import { IUser } from '../../models/user/user.model';
  * @description Schemat Mongoose definiujący profil konta użytkownika w systemie SolidHome.
  */
 const UserSchema = new Schema<IUser>({
-    email: { type: String, required: true, unique: true },
-    userName: { type: String, required: true, unique: true },
-    active: { type: Boolean, default: true },
-    online: { type: Boolean, default: false },
+  email: { type: String, required: true, unique: true },
+  userName: { type: String, required: true, unique: true },
+  active: { type: Boolean, default: true },
+  online: { type: Boolean, default: false },
 });
 
 export default model<IUser>('User', UserSchema);

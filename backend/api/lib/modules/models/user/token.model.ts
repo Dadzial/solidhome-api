@@ -6,9 +6,9 @@ import { Types } from 'mongoose';
  * Definiuje strukturę typów TypeScript wykorzystywaną przez schemat Mongoose (TokenSchema).
  */
 export interface IToken {
-    userId: Types.ObjectId;
-    createDate: number;
-    type: 'authorization' | 'refresh';
-    value: string;
-    expireAt?: Date;
+  userId: Types.ObjectId;
+  createDate: number;
+  type: 'authorization' | 'refresh';
+  value: string;
+  expireAt?: Date;
 }
