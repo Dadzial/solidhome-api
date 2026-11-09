@@ -3,6 +3,7 @@ import LightsService, { DEFAULT_LIGHTS } from '../../lib/modules/services/lights
 import LightModel from '../../lib/modules/schemas/lights/lights.schema';
 import LightsHistoryService from '../../lib/modules/services/lights/lights-history.service';
 import LightsEnergyService from '../../lib/modules/services/lights/lights-energy.service';
+import MqttService from '../../lib/modules/services/lights/mqtt.service';
 import { seedDefaultLights } from '../helpers/lights.helper';
 import { Types } from 'mongoose';
 
@@ -10,6 +11,7 @@ describe('LightsService', () => {
   let service: LightsService;
   let mockHistoryService: LightsHistoryService;
   let mockEnergyService: LightsEnergyService;
+  let mockMqttService: MqttService;
 
   beforeEach(async () => {
     await seedDefaultLights();
@@ -24,7 +26,12 @@ describe('LightsService', () => {
       accumulateEnergyOnStateChange: vi.fn().mockResolvedValue(undefined),
     } as unknown as LightsEnergyService;
 
-    service = new LightsService(mockHistoryService, mockEnergyService);
+    mockMqttService = {
+      publish: vi.fn(),
+      disconnect: vi.fn(),
+    } as unknown as MqttService;
+
+    service = new LightsService(mockHistoryService, mockEnergyService, mockMqttService);
   });
 
   describe('initDefaultLights', () => {
@@ -49,18 +56,6 @@ describe('LightsService', () => {
 
       const newService = new LightsService(mockHistoryService);
       expect(newService).toBeDefined();
-    });
-  });
-
-  describe('sendLightsStatusToHardware', () => {
-    it('should return record mapping room name to state integer', async () => {
-      await LightModel.updateOne({ name: 'kitchen' }, { state: 1 });
-
-      const hardwareMap = await service.sendLightsStatusToHardware();
-
-      expect(hardwareMap.kitchen).toBe(1);
-      expect(hardwareMap.living_room).toBe(0);
-      expect(Object.keys(hardwareMap)).toEqual(expect.arrayContaining(DEFAULT_LIGHTS));
     });
   });
 
@@ -90,6 +85,11 @@ describe('LightsService', () => {
         'living_room',
         1,
       );
+      expect(mockMqttService.publish).toHaveBeenCalledWith('lights/set', {
+        name: 'living_room',
+        state: 1,
+        living_room: 1,
+      });
     });
 
     it('should NOT call history or energy services if light state is unchanged', async () => {

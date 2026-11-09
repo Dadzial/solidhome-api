@@ -2,6 +2,7 @@ import LightModel from '../../schemas/lights/lights.schema';
 import { ILight } from '../../models/lights/lights.model';
 import { Types } from 'mongoose';
 import logger from '../../../utils/logger';
+import MqttService from './mqtt.service';
 import LightsHistoryService from './lights-history.service';
 import LightsEnergyService from './lights-energy.service';
 
@@ -29,10 +30,12 @@ class LightsService {
    * @constructor
    * @param lightsHistoryService - Serwis odpowiedzialny za rejestrowanie historii zdarzeń przełączeń świateł.
    * @param lightsEnergyService - Opcjonalny serwis odpowiedzialny za naliczanie zużycia energii.
+   * @param mqttService - Opcjonalny serwis odpowiedzialny za publikowanie zdarzeń MQTT do urządzeń zewnętrznych.
    */
   constructor(
     private lightsHistoryService: LightsHistoryService,
     private lightsEnergyService?: LightsEnergyService,
+    private mqttService?: MqttService,
   ) {
     this.initDefaultLights();
   }
@@ -51,23 +54,6 @@ class LightsService {
     } catch (error) {
       logger.error('Error initializing default lights:', error);
     }
-  }
-
-  /**
-   * Pobiera stany wszystkich świateł w płaskim formacie klucz-wartość dla mikrokontrolera (SolidHome.c).
-   * Zoptymalizowany pod kątem biblioteki cJSON (np. { living_room: 0, kitchen: 1 }).
-   *
-   * @returns Promise<Record<string, number>>
-   */
-  public async sendLightsStatusToHardware(): Promise<Record<string, number>> {
-    const lights = await LightModel.find({}, 'name state').lean();
-
-    const statusMap: Record<string, number> = {};
-    for (const light of lights) {
-      statusMap[light.name] = light.state;
-    }
-
-    return statusMap;
   }
 
   /**
@@ -108,6 +94,14 @@ class LightsService {
 
       if (this.lightsEnergyService) {
         await this.lightsEnergyService.accumulateEnergyOnStateChange(name, newState);
+      }
+
+      if (this.mqttService) {
+        this.mqttService.publish('lights/set', {
+          name,
+          state: newState,
+          [name]: newState,
+        });
       }
     }
     return light;

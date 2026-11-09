@@ -45,17 +45,6 @@ describe('LightsController (Integration)', () => {
     authToken = testUser.token;
   });
 
-  describe('GET /api/lights/status/hardware', () => {
-    it('should return 200 and flat dictionary of light states for embedded hardware without authentication', async () => {
-      const res = await request(app).get('/api/lights/status/hardware');
-
-      expect(res.status).toBe(200);
-      expect(typeof res.body).toBe('object');
-      expect(res.body.living_room).toBe(0);
-      expect(Object.keys(res.body)).toEqual(expect.arrayContaining(DEFAULT_LIGHTS));
-    });
-  });
-
   describe('GET /api/lights/status/app', () => {
     it('should return 200 and list of light objects for authenticated client application', async () => {
       const res = await request(app)

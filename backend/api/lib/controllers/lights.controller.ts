@@ -44,7 +44,6 @@ class LightsController implements Controller {
    * @private
    */
   private initializeRoutes(): void {
-    this.router.get(`${this.path}/status/hardware`, this.giveLightStatusToBoard);
     this.router.get(`${this.path}/status/app`, auth, LightsLimiter, this.giveLightStatusToApp);
     this.router.get(`${this.path}/history`, auth, LightsLimiter, this.getLightHistory);
     this.router.get(`${this.path}/energy`, auth, this.getLightEnergyStats);
@@ -61,23 +60,6 @@ class LightsController implements Controller {
     this.router.delete(`${this.path}/history/reset`, auth, LightsLimiter, this.deleteLightHistory);
     this.router.delete(`${this.path}/rules/:id`, auth, LightsLimiter, this.deleteScheduleRule);
   }
-
-  /**
-   * Zwraca aktualny stan świateł w postaci płaskiej mapy dla mikrokontrolera NXP (SolidHome.c).
-   * @route GET /api/lights/status/hardware (oraz /api/lights/get/status)
-   * @access Private (wymaga tokenu JWT)
-   * @param req - Zapytanie Express
-   * @param res - Odpowiedź ze słownikiem stanów { [nazwa]: 0 | 1 }
-   */
-  private giveLightStatusToBoard = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const status = await this.lightsService.sendLightsStatusToHardware();
-      res.status(200).json(status);
-    } catch (error) {
-      logger.error('Error fetching lights status for hardware', error);
-      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  };
 
   /**
    * Zwraca listę wszystkich świateł dla interfejsu aplikacji klienckiej.

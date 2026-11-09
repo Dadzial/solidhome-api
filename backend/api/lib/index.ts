@@ -13,6 +13,7 @@ import LightsService from './modules/services/lights/lights.service';
 import LightsHistoryService from './modules/services/lights/lights-history.service';
 import LightsEnergyService from './modules/services/lights/lights-energy.service';
 import LightsScheduleService from './modules/services/lights/lights-schedule.service';
+import MqttService from './modules/services/lights/mqtt.service';
 
 /**
  * Fabryka inicjalizująca instancje serwisów oraz wstrzykująca je jako zależności do kontrolerów.
@@ -28,7 +29,8 @@ function createControllers(): Controller[] {
   const lightsHistoryService = new LightsHistoryService();
   const lightsEnergyService = new LightsEnergyService();
   const lightsScheduleService = new LightsScheduleService();
-  const lightsService = new LightsService(lightsHistoryService, lightsEnergyService);
+  const mqttService = new MqttService();
+  const lightsService = new LightsService(lightsHistoryService, lightsEnergyService, mqttService);
 
   return [
     new LightsController(
