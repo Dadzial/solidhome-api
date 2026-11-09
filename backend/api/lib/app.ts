@@ -36,6 +36,7 @@ class App {
    * @private
    */
   private initializeMiddlewares(): void {
+    this.app.set('trust proxy', 1);
     this.app.use(corsMiddleware);
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
