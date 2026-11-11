@@ -20,12 +20,12 @@ export const DEFAULT_LIGHTS = [
 ];
 
 /**
- * @class LightsService
+ * @class LightsControlService
  * @description Serwis zarządzający aktualnym stanem punktów świetlnych w systemie SolidHome.
  * Odpowiada za synchronizację sprzętową z mikrokontrolerem NXP, obsługę włączników w aplikacji
  * oraz delegowanie zdarzeń przełączeń do serwisu historii i naliczania energii.
  */
-class LightsService {
+class LightsControlService {
   /**
    * @constructor
    * @param lightsHistoryService - Serwis odpowiedzialny za rejestrowanie historii zdarzeń przełączeń świateł.
@@ -108,4 +108,4 @@ class LightsService {
   }
 }
 
-export default LightsService;
+export default LightsControlService;

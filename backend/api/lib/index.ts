@@ -9,10 +9,11 @@ import PasswordService from './modules/services/user/password.service';
 import EmailService from './modules/services/user/email.service';
 import ResetCodeService from './modules/services/user/reset-code.service';
 import Controller from './interfaces/controller.interface';
-import LightsService from './modules/services/lights/lights.service';
+import LightsControlService from './modules/services/lights/lights-control.service';
 import LightsHistoryService from './modules/services/lights/lights-history.service';
 import LightsEnergyService from './modules/services/lights/lights-energy.service';
 import LightsScheduleService from './modules/services/lights/lights-schedule.service';
+import LightsScenesService from './modules/services/lights/lights-scenes.service';
 import MqttService from './modules/services/lights/mqtt.service';
 
 /**
@@ -29,8 +30,9 @@ function createControllers(): Controller[] {
   const lightsHistoryService = new LightsHistoryService();
   const lightsEnergyService = new LightsEnergyService();
   const lightsScheduleService = new LightsScheduleService();
+  const lightsScenesService = new LightsScenesService();
   const mqttService = new MqttService();
-  const lightsService = new LightsService(lightsHistoryService, lightsEnergyService, mqttService);
+  const lightsService = new LightsControlService(lightsHistoryService, lightsEnergyService, mqttService);
 
   return [
     new LightsController(
@@ -38,6 +40,7 @@ function createControllers(): Controller[] {
       lightsHistoryService,
       lightsEnergyService,
       lightsScheduleService,
+      lightsScenesService,
     ),
     new HealthController(),
     new AirController(),

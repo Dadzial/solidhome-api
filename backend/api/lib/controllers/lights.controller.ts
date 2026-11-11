@@ -2,10 +2,11 @@ import Controller from '../interfaces/controller.interface';
 import { Router, Response, Request } from 'express';
 import { auth, AuthRequest } from '../middlewares/auth.middleware';
 import { LightsLimiter } from '../middlewares/rate-limiter.middleware';
-import LightsService from '../modules/services/lights/lights.service';
+import LightsControlService from '../modules/services/lights/lights-control.service';
 import LightsHistoryService from '../modules/services/lights/lights-history.service';
 import LightsEnergyService from '../modules/services/lights/lights-energy.service';
 import LightsScheduleService from '../modules/services/lights/lights-schedule.service';
+import LightsScenesService from '../modules/services/lights/lights-scenes.service';
 import Joi from 'joi';
 import logger from '../utils/logger';
 import { Types } from 'mongoose';
@@ -29,12 +30,14 @@ class LightsController implements Controller {
    * @param lightsHistoryService - Serwis zarządzania historią zdarzeń oświetlenia
    * @param lightsEnergyService - Serwis zarządzania statystykami zużycia energii oświetlenia
    * @param lightsScheduleService - Serwis zarządzania regułami harmonogramu oświetlenia
+   * @param lightsScenesService - Serwis zarządzania scenami oświetlenia
    */
   constructor(
-    private lightsService: LightsService,
+    private lightsService: LightsControlService,
     private lightsHistoryService: LightsHistoryService,
     private lightsEnergyService: LightsEnergyService,
     private lightsScheduleService: LightsScheduleService,
+    private lightsScenesService: LightsScenesService,
   ) {
     this.initializeRoutes();
   }
@@ -48,17 +51,16 @@ class LightsController implements Controller {
     this.router.get(`${this.path}/history`, auth, LightsLimiter, this.getLightHistory);
     this.router.get(`${this.path}/energy`, auth, this.getLightEnergyStats);
     this.router.get(`${this.path}/rules`, auth, LightsLimiter, this.getScheduleRules);
+    this.router.get(`${this.path}/scenes`, auth, LightsLimiter, this.getLightScenes);
     this.router.post(`${this.path}/rules`, auth, LightsLimiter, this.createScheduleRule);
-    this.router.put(`${this.path}/rules/:id`, auth, LightsLimiter, this.updateRuleActiveStatus);
     this.router.post(`${this.path}/update`, auth, LightsLimiter, this.updateLightStatus);
-    this.router.delete(
-      `${this.path}/energy/reset`,
-      auth,
-      LightsLimiter,
-      this.deleteLightEnergyStats,
-    );
+    this.router.post(`${this.path}/scenes`, auth, LightsLimiter, this.createLightScene);
+    this.router.put(`${this.path}/rules/:id`, auth, LightsLimiter, this.updateRuleActiveStatus);
+    this.router.put(`${this.path}/scenes/:id`, auth, LightsLimiter, this.updateSceneActiveStatus);
+    this.router.delete(`${this.path}/energy/reset`, auth, LightsLimiter, this.deleteLightEnergyStats);
     this.router.delete(`${this.path}/history/reset`, auth, LightsLimiter, this.deleteLightHistory);
     this.router.delete(`${this.path}/rules/:id`, auth, LightsLimiter, this.deleteScheduleRule);
+    this.router.delete(`${this.path}/scenes/:id`, auth, LightsLimiter, this.deleteLightScene);
   }
 
   /**
@@ -154,6 +156,23 @@ class LightsController implements Controller {
   };
 
   /**
+   * Pobiera listę wszystkich scen oświetlenia.
+   * @route GET /api/lights/scenes
+   * @access Private (wymaga tokenu JWT)
+   * @param req - Zapytanie Express
+   * @param res - Odpowiedź z listą scen
+   */
+  private getLightScenes = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const scenes = await this.lightsScenesService.getScenes();
+      res.status(200).json(scenes);
+    } catch (error) {
+      logger.error('Error fetching light scenes', error);
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  };
+
+  /**
    * Tworzy nową regułę harmonogramu oświetlenia.
    * @route POST /api/lights/rules
    * @access Private (wymaga tokenu JWT)
@@ -184,6 +203,74 @@ class LightsController implements Controller {
       return res.status(201).json(rule);
     } catch (error) {
       logger.error('Error creating schedule rule', error);
+      return res
+        .status(500)
+        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  };
+
+  /**
+   * Zmienia stan fizyczny światła i rejestruje to zdarzenie w historii.
+   * @route POST /api/lights/update
+   * @access Private (wymaga tokenu JWT)
+   * @param req - Zapytanie Express zawierające { name: string, state: 0 | 1 }
+   * @param res - Odpowiedź z zaktualizowanym obiektem światła
+   */
+  private updateLightStatus = async (req: AuthRequest, res: Response): Promise<Response> => {
+    const schema = Joi.object({
+      name: Joi.string().required(),
+      state: Joi.number().valid(0, 1).required(),
+    });
+
+    const { error, value } = schema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { name, state } = value;
+
+    try {
+      const userId = req.user?.userId ? new Types.ObjectId(req.user.userId) : undefined;
+      const updatedLight = await this.lightsService.updateLightState(name, state, userId);
+      return res.status(200).json(updatedLight);
+    } catch (error) {
+      logger.error(`Error updating light state for "${name}"`, error);
+      return res
+        .status(400)
+        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  };
+
+  /**
+   * Tworzy nową scenę oświetlenia.
+   * @route POST /api/lights/scenes
+   * @access Private (wymaga tokenu JWT)
+   * @param req - Zapytanie Express z ciałem { name, icon, rooms }
+   * @param res - Odpowiedź ze statusem 201 i utworzoną sceną
+   */
+  private createLightScene = async (req: AuthRequest, res: Response): Promise<Response> => {
+    const schema = Joi.object({
+      name: Joi.string().trim().min(1).max(100).required(),
+      icon: Joi.string().trim().min(1).required(),
+      rooms: Joi.array().items(Joi.string()).default([]),
+    });
+
+    const { error, value } = schema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    try {
+      const userId = req.user?.userId ? new Types.ObjectId(req.user.userId) : undefined;
+      const scene = await this.lightsScenesService.createScene({
+        ...value,
+        userId,
+      });
+      return res.status(201).json(scene);
+    } catch (error) {
+      logger.error('Error creating light scene', error);
       return res
         .status(500)
         .json({ message: error instanceof Error ? error.message : 'Unknown error' });
@@ -229,16 +316,21 @@ class LightsController implements Controller {
   };
 
   /**
-   * Zmienia stan fizyczny światła i rejestruje to zdarzenie w historii.
-   * @route POST /api/lights/update
+   * Przełącza lub aktualizuje status aktywności sceny oświetlenia.
+   * @route PUT /api/lights/scenes/:id
    * @access Private (wymaga tokenu JWT)
-   * @param req - Zapytanie Express zawierające { name: string, state: 0 | 1 }
-   * @param res - Odpowiedź z zaktualizowanym obiektem światła
+   * @param req - Zapytanie Express z parametrem :id i opcjonalnym ciałem { active?: boolean }
+   * @param res - Odpowiedź ze zaktualizowaną sceną
    */
-  private updateLightStatus = async (req: AuthRequest, res: Response): Promise<Response> => {
+  private updateSceneActiveStatus = async (req: AuthRequest, res: Response): Promise<Response> => {
+    const { id } = req.params;
+
+    if (!Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid scene ID format' });
+    }
+
     const schema = Joi.object({
-      name: Joi.string().required(),
-      state: Joi.number().valid(0, 1).required(),
+      active: Joi.boolean().optional(),
     });
 
     const { error, value } = schema.validate(req.body);
@@ -247,16 +339,18 @@ class LightsController implements Controller {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { name, state } = value;
-
     try {
-      const userId = req.user?.userId ? new Types.ObjectId(req.user.userId) : undefined;
-      const updatedLight = await this.lightsService.updateLightState(name, state, userId);
-      return res.status(200).json(updatedLight);
+      const updatedScene = await this.lightsScenesService.toggleScene(id, value.active);
+
+      if (!updatedScene) {
+        return res.status(404).json({ message: 'Light scene not found' });
+      }
+
+      return res.status(200).json(updatedScene);
     } catch (error) {
-      logger.error(`Error updating light state for "${name}"`, error);
+      logger.error(`Error updating scene active status ${id}`, error);
       return res
-        .status(400)
+        .status(500)
         .json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
@@ -325,6 +419,34 @@ class LightsController implements Controller {
       return res.status(200).json({ message: 'Schedule rule deleted successfully' });
     } catch (error) {
       logger.error(`Error deleting schedule rule ${id}`, error);
+      return res
+        .status(500)
+        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  };
+
+  /**
+   * Usuwa wybraną scenę oświetlenia.
+   * @route DELETE /api/lights/scenes/:id
+   * @access Private (wymaga tokenu JWT)
+   * @param req - Zapytanie Express z parametrem :id
+   * @param res - Odpowiedź z potwierdzeniem usunięcia sceny
+   */
+  private deleteLightScene = async (req: AuthRequest, res: Response): Promise<Response> => {
+    const { id } = req.params;
+
+    if (!Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid scene ID format' });
+    }
+
+    try {
+      const success = await this.lightsScenesService.deleteScene(id);
+      if (!success) {
+        return res.status(404).json({ message: 'Light scene not found' });
+      }
+      return res.status(200).json({ message: 'Light scene deleted successfully' });
+    } catch (error) {
+      logger.error(`Error deleting light scene ${id}`, error);
       return res
         .status(500)
         .json({ message: error instanceof Error ? error.message : 'Unknown error' });

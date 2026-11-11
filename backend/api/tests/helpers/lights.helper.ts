@@ -1,5 +1,5 @@
 import LightModel from '../../lib/modules/schemas/lights/lights.schema';
-import { DEFAULT_LIGHTS } from '../../lib/modules/services/lights/lights.service';
+import { DEFAULT_LIGHTS } from '../../lib/modules/services/lights/lights-control.service';
 
 /**
  * Resetuje stan świateł w bazie MongoDB do wartości domyślnych (wyłączone).

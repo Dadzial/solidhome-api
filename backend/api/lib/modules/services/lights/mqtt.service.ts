@@ -33,7 +33,7 @@ class MqttService {
   private connect(): void {
     const clientId = `solidhome_api_${Math.random().toString(16).substring(2, 8)}`;
 
-    logger.info(`[MQTT] Connecting to broker ${config.mqttBrokerUrl}...`);
+    logger.info(`Connecting to broker ${config.mqttBrokerUrl}...`);
 
     this.client = mqtt.connect(config.mqttBrokerUrl, {
       clientId,
@@ -45,7 +45,7 @@ class MqttService {
 
     this.client.on('connect', () => {
       this.isConnected = true;
-      logger.info(`[MQTT] Connected to broker (clientId: ${clientId})`);
+      logger.info(`Connected to broker (clientId: ${clientId})`);
 
       const statusTopic = `${config.mqttTopicPrefix}/lights/status`;
       this.client?.subscribe(statusTopic, (err) => {
@@ -82,7 +82,7 @@ class MqttService {
    */
   public publish(subTopic: string, payload: object | string): void {
     if (!this.client || !this.isConnected) {
-      logger.warn(`[MQTT] Cannot publish to ${subTopic}: MQTT client is not connected.`);
+      logger.warn(`Cannot publish to ${subTopic}: MQTT client is not connected.`);
       return;
     }
 
@@ -91,9 +91,9 @@ class MqttService {
 
     this.client.publish(fullTopic, message, { qos: 1 }, (err) => {
       if (err) {
-        logger.error(`[MQTT] Error publishing to ${fullTopic}:`, err);
+        logger.error(`Error publishing to ${fullTopic}:`, err);
       } else {
-        logger.info(`[MQTT] Published to ${fullTopic}: ${message}`);
+        logger.info(`Published to ${fullTopic}: ${message}`);
       }
     });
   }
@@ -104,8 +104,9 @@ class MqttService {
   public disconnect(): void {
     if (this.client) {
       this.client.end(false, () => {
-        logger.info('[MQTT] Disconnected from broker');
+        logger.info('Disconnected from broker');
       });
+      this.isConnected = false;
     }
   }
 }

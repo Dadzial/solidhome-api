@@ -31,7 +31,7 @@ class LightsScheduleService {
     try {
       return await LightScheduleModel.find().sort({ createdAt: -1 }).lean();
     } catch (error) {
-      logger.error('[LightsScheduleService] Error fetching schedule rules:', error);
+      logger.error('Error fetching schedule rules:', error);
       throw error;
     }
   }
@@ -53,10 +53,10 @@ class LightsScheduleService {
         active: true,
         userId: data.userId,
       });
-      logger.info(`[LightsScheduleService] Created new schedule rule "${rule.name}" (${rule._id})`);
+      logger.info(`Created new schedule rule "${rule.name}" (${rule._id})`);
       return rule;
     } catch (error) {
-      logger.error('[LightsScheduleService] Error creating schedule rule:', error);
+      logger.error('Error creating schedule rule:', error);
       throw error;
     }
   }
@@ -80,11 +80,11 @@ class LightsScheduleService {
       rule.active = typeof active === 'boolean' ? active : !rule.active;
       await rule.save();
       logger.info(
-        `[LightsScheduleService] Toggled schedule rule "${rule.name}" (${rule._id}) active: ${rule.active}`,
+        `Toggled schedule rule "${rule.name}" (${rule._id}) active: ${rule.active}`,
       );
       return rule;
     } catch (error) {
-      logger.error(`[LightsScheduleService] Error toggling schedule rule ${id}:`, error);
+      logger.error(`Error toggling schedule rule ${id}:`, error);
       throw error;
     }
   }
@@ -102,11 +102,11 @@ class LightsScheduleService {
       }
       const result = await LightScheduleModel.deleteOne({ _id: new Types.ObjectId(id) });
       logger.info(
-        `[LightsScheduleService] Deleted schedule rule ${id}, deletedCount: ${result.deletedCount}`,
+        `Deleted schedule rule ${id}, deletedCount: ${result.deletedCount}`,
       );
       return result.deletedCount > 0;
     } catch (error) {
-      logger.error(`[LightsScheduleService] Error deleting schedule rule ${id}:`, error);
+      logger.error(`Error deleting schedule rule ${id}:`, error);
       throw error;
     }
   }

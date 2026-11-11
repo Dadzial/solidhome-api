@@ -2,7 +2,7 @@ import LightEnergyModel from '../../schemas/lights/lights-energy.schema';
 import LightModel from '../../schemas/lights/lights.schema';
 import { ILightEnergy, EnergyTimeframe } from '../../models/lights/lights-energy.model';
 import { ITopRoomEnergy } from '../../models/lights/lights-energy-top.model';
-import { DEFAULT_LIGHTS } from './lights.service';
+import { DEFAULT_LIGHTS } from './lights-control.service';
 import logger from '../../../utils/logger';
 
 /**
@@ -266,7 +266,7 @@ class LightsEnergyService {
         await record.save();
 
         logger.info(
-          `[LightsEnergyService] "${name}" ON -> active power ${activePowerKw} kW saved to chartData`,
+          `"${name}" ON -> active power ${activePowerKw} kW saved to chartData`,
         );
       } else {
         const turnedOnAt = this.turnedOnTimestamps[name];
@@ -291,11 +291,11 @@ class LightsEnergyService {
         await record.save();
 
         logger.info(
-          `[LightsEnergyService] "${name}" OFF -> active power ${activePowerKw} kW saved (point drops to 0)`,
+          `"${name}" OFF -> active power ${activePowerKw} kW saved (point drops to 0)`,
         );
       }
     } catch (error) {
-      logger.error(`[LightsEnergyService] Error accumulating energy for ${name}:`, error);
+      logger.error(`Error accumulating energy for ${name}:`, error);
     }
   }
 
@@ -503,7 +503,7 @@ class LightsEnergyService {
 
       return result;
     } catch (error) {
-      logger.error('[LightsEnergyService] Error generating energy stats:', error);
+      logger.error('Error generating energy stats:', error);
       throw error;
     }
   }
@@ -518,10 +518,10 @@ class LightsEnergyService {
       for (const room of DEFAULT_LIGHTS) {
         this.turnedOnTimestamps[room] = null;
       }
-      logger.info('[LightsEnergyService] Successfully reset lights energy stats.');
+      logger.info('Successfully reset lights energy stats.');
       return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
     } catch (error) {
-      logger.error('[LightsEnergyService] Error resetting lights energy stats:', error);
+      logger.error('Error resetting lights energy stats:', error);
       throw new Error('Error resetting lights energy stats');
     }
   }

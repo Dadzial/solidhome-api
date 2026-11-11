@@ -2,22 +2,25 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 import LightsController from '../../lib/controllers/lights.controller';
-import LightsService, { DEFAULT_LIGHTS } from '../../lib/modules/services/lights/lights.service';
+import LightsControlService, { DEFAULT_LIGHTS } from '../../lib/modules/services/lights/lights-control.service';
 import LightsHistoryService from '../../lib/modules/services/lights/lights-history.service';
 import LightsEnergyService from '../../lib/modules/services/lights/lights-energy.service';
 import LightsScheduleService from '../../lib/modules/services/lights/lights-schedule.service';
+import LightsScenesService from '../../lib/modules/services/lights/lights-scenes.service';
 import { createTestUser } from '../helpers/auth.helper';
 import { seedDefaultLights } from '../helpers/lights.helper';
 import LightModel from '../../lib/modules/schemas/lights/lights.schema';
 import LightScheduleModel from '../../lib/modules/schemas/lights/lights-schedule.schema';
+import LightSceneModel from '../../lib/modules/schemas/lights/lights-scene.schema';
 import { Types } from 'mongoose';
 
 describe('LightsController (Integration)', () => {
   let app: express.Application;
-  let lightsService: LightsService;
+  let lightsService: LightsControlService;
   let lightsHistoryService: LightsHistoryService;
   let lightsEnergyService: LightsEnergyService;
   let lightsScheduleService: LightsScheduleService;
+  let lightsScenesService: LightsScenesService;
   let lightsController: LightsController;
   let authToken: string;
 
@@ -30,13 +33,15 @@ describe('LightsController (Integration)', () => {
     lightsHistoryService = new LightsHistoryService();
     lightsEnergyService = new LightsEnergyService();
     lightsScheduleService = new LightsScheduleService();
-    lightsService = new LightsService(lightsHistoryService, lightsEnergyService);
+    lightsScenesService = new LightsScenesService();
+    lightsService = new LightsControlService(lightsHistoryService, lightsEnergyService);
 
     lightsController = new LightsController(
       lightsService,
       lightsHistoryService,
       lightsEnergyService,
       lightsScheduleService,
+      lightsScenesService,
     );
 
     app.use('/', lightsController.router);
@@ -303,6 +308,122 @@ describe('LightsController (Integration)', () => {
     it('should return 400 on DELETE /api/lights/rules/:id for invalid ID format', async () => {
       const res = await request(app)
         .delete('/api/lights/rules/not_an_id')
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('Light Scenes CRUD (/api/lights/scenes)', () => {
+    it('should create new scene on POST /api/lights/scenes', async () => {
+      const res = await request(app)
+        .post('/api/lights/scenes')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          name: 'Wieczor filmowy',
+          icon: 'assets/icons/film.svg',
+          rooms: ['living_room', 'kitchen'],
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.name).toBe('Wieczor filmowy');
+      expect(res.body.icon).toBe('assets/icons/film.svg');
+      expect(res.body.rooms).toEqual(['living_room', 'kitchen']);
+      expect(res.body.active).toBe(false);
+      expect(res.body._id).toBeDefined();
+    });
+
+    it('should return 400 when creating scene with missing name or icon', async () => {
+      const res = await request(app)
+        .post('/api/lights/scenes')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({
+          rooms: ['living_room'],
+        });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should list all scenes on GET /api/lights/scenes', async () => {
+      await lightsScenesService.createScene({
+        name: 'Scena A',
+        icon: 'assets/icons/heart.svg',
+        rooms: ['bedroom'],
+      });
+
+      const res = await request(app)
+        .get('/api/lights/scenes')
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should toggle scene active state on PUT /api/lights/scenes/:id', async () => {
+      const scene = await lightsScenesService.createScene({
+        name: 'Do przelaczenia',
+        icon: 'assets/icons/film.svg',
+        rooms: ['living_room'],
+      });
+
+      const res = await request(app)
+        .put(`/api/lights/scenes/${scene._id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ active: true });
+
+      expect(res.status).toBe(200);
+      expect(res.body.active).toBe(true);
+    });
+
+    it('should return 404 on PUT /api/lights/scenes/:id when scene not found', async () => {
+      const nonExistentId = new Types.ObjectId();
+      const res = await request(app)
+        .put(`/api/lights/scenes/${nonExistentId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ active: true });
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 400 on PUT /api/lights/scenes/:id for invalid ID format', async () => {
+      const res = await request(app)
+        .put('/api/lights/scenes/not_an_id')
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should delete scene on DELETE /api/lights/scenes/:id', async () => {
+      const scene = await lightsScenesService.createScene({
+        name: 'Do usuniecia',
+        icon: 'assets/icons/film.svg',
+        rooms: ['garage'],
+      });
+
+      const res = await request(app)
+        .delete(`/api/lights/scenes/${scene._id}`)
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('Light scene deleted successfully');
+
+      const inDb = await LightSceneModel.findById(scene._id);
+      expect(inDb).toBeNull();
+    });
+
+    it('should return 404 on DELETE /api/lights/scenes/:id when scene not found', async () => {
+      const nonExistentId = new Types.ObjectId();
+      const res = await request(app)
+        .delete(`/api/lights/scenes/${nonExistentId}`)
+        .set('Authorization', `Bearer ${authToken}`);
+
+      expect(res.status).toBe(404);
+    });
+
+    it('should return 400 on DELETE /api/lights/scenes/:id for invalid ID format', async () => {
+      const res = await request(app)
+        .delete('/api/lights/scenes/not_an_id')
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(res.status).toBe(400);

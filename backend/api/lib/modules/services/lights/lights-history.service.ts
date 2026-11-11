@@ -53,7 +53,7 @@ class LightsHistoryService {
         .populate('userId', 'userName email')
         .lean();
     } catch (error) {
-      logger.error('[LightsHistoryService] Error fetching lights history:', error);
+      logger.error('Error fetching lights history:', error);
       throw error;
     }
   }
@@ -67,10 +67,10 @@ class LightsHistoryService {
   public async resetHistory(): Promise<{ acknowledged: boolean; deletedCount: number }> {
     try {
       const result = await lightsHistoryModel.deleteMany({});
-      logger.info('[LightsHistoryService] Successfully reset lights history.');
+      logger.info('Successfully reset lights history.');
       return result;
     } catch (error) {
-      logger.error('[LightsHistoryService] Error resetting lights history:', error);
+      logger.error('Error resetting lights history:', error);
       throw error;
     }
   }

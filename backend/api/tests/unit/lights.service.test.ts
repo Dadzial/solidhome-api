@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import LightsService, { DEFAULT_LIGHTS } from '../../lib/modules/services/lights/lights.service';
+import LightsControlService, { DEFAULT_LIGHTS } from '../../lib/modules/services/lights/lights-control.service';
 import LightModel from '../../lib/modules/schemas/lights/lights.schema';
 import LightsHistoryService from '../../lib/modules/services/lights/lights-history.service';
 import LightsEnergyService from '../../lib/modules/services/lights/lights-energy.service';
@@ -7,8 +7,8 @@ import MqttService from '../../lib/modules/services/lights/mqtt.service';
 import { seedDefaultLights } from '../helpers/lights.helper';
 import { Types } from 'mongoose';
 
-describe('LightsService', () => {
-  let service: LightsService;
+describe('LightsControlService', () => {
+  let service: LightsControlService;
   let mockHistoryService: LightsHistoryService;
   let mockEnergyService: LightsEnergyService;
   let mockMqttService: MqttService;
@@ -31,13 +31,13 @@ describe('LightsService', () => {
       disconnect: vi.fn(),
     } as unknown as MqttService;
 
-    service = new LightsService(mockHistoryService, mockEnergyService, mockMqttService);
+    service = new LightsControlService(mockHistoryService, mockEnergyService, mockMqttService);
   });
 
   describe('initDefaultLights', () => {
     it('should ensure all default lights exist in database with state 0', async () => {
       await LightModel.deleteMany({});
-      const s = new LightsService(mockHistoryService);
+      const s = new LightsControlService(mockHistoryService);
       // Czekamy chwilę na zakończenie asynchronicznej pętli initDefaultLights
       await new Promise((r) => setTimeout(r, 100));
 
@@ -54,7 +54,7 @@ describe('LightsService', () => {
     it('should handle database error during initialization without throwing', async () => {
       vi.spyOn(LightModel, 'updateOne').mockRejectedValueOnce(new Error('Init lights failure'));
 
-      const newService = new LightsService(mockHistoryService);
+      const newService = new LightsControlService(mockHistoryService);
       expect(newService).toBeDefined();
     });
   });
@@ -101,7 +101,7 @@ describe('LightsService', () => {
     });
 
     it('should work properly when energyService is omitted in constructor', async () => {
-      const serviceWithoutEnergy = new LightsService(mockHistoryService);
+      const serviceWithoutEnergy = new LightsControlService(mockHistoryService);
       const updated = await serviceWithoutEnergy.updateLightState('garage', 1);
 
       expect(updated.state).toBe(1);
