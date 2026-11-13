@@ -32,9 +32,7 @@ describe('LightsScenesService', () => {
     });
 
     it('should throw error when database create fails', async () => {
-      vi.spyOn(LightSceneModel, 'create').mockRejectedValueOnce(
-        new Error('Scene creation failed'),
-      );
+      vi.spyOn(LightSceneModel, 'create').mockRejectedValueOnce(new Error('Scene creation failed'));
 
       await expect(
         service.createScene({

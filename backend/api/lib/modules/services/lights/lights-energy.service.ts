@@ -265,9 +265,7 @@ class LightsEnergyService {
         record.topRooms = this.calculateTopRooms(currentLightsKwh, totalKwh);
         await record.save();
 
-        logger.info(
-          `"${name}" ON -> active power ${activePowerKw} kW saved to chartData`,
-        );
+        logger.info(`"${name}" ON -> active power ${activePowerKw} kW saved to chartData`);
       } else {
         const turnedOnAt = this.turnedOnTimestamps[name];
         if (turnedOnAt) {
@@ -290,9 +288,7 @@ class LightsEnergyService {
         record.topRooms = this.calculateTopRooms(currentLightsKwh, totalKwh);
         await record.save();
 
-        logger.info(
-          `"${name}" OFF -> active power ${activePowerKw} kW saved (point drops to 0)`,
-        );
+        logger.info(`"${name}" OFF -> active power ${activePowerKw} kW saved (point drops to 0)`);
       }
     } catch (error) {
       logger.error(`Error accumulating energy for ${name}:`, error);

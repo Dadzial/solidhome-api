@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import LightsControlService, { DEFAULT_LIGHTS } from '../../lib/modules/services/lights/lights-control.service';
+import LightsControlService, {
+  DEFAULT_LIGHTS,
+} from '../../lib/modules/services/lights/lights-control.service';
 import LightModel from '../../lib/modules/schemas/lights/lights.schema';
 import LightsHistoryService from '../../lib/modules/services/lights/lights-history.service';
 import LightsEnergyService from '../../lib/modules/services/lights/lights-energy.service';
-import MqttService from '../../lib/modules/services/lights/mqtt.service';
+import MqttService from '../../lib/modules/services/mqtt/mqtt.service';
 import { seedDefaultLights } from '../helpers/lights.helper';
 import { Types } from 'mongoose';
 
@@ -28,7 +30,6 @@ describe('LightsControlService', () => {
 
     mockMqttService = {
       publish: vi.fn(),
-      disconnect: vi.fn(),
     } as unknown as MqttService;
 
     service = new LightsControlService(mockHistoryService, mockEnergyService, mockMqttService);

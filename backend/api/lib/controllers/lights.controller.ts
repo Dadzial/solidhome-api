@@ -57,7 +57,12 @@ class LightsController implements Controller {
     this.router.post(`${this.path}/scenes`, auth, LightsLimiter, this.createLightScene);
     this.router.put(`${this.path}/rules/:id`, auth, LightsLimiter, this.updateRuleActiveStatus);
     this.router.put(`${this.path}/scenes/:id`, auth, LightsLimiter, this.updateSceneActiveStatus);
-    this.router.delete(`${this.path}/energy/reset`, auth, LightsLimiter, this.deleteLightEnergyStats);
+    this.router.delete(
+      `${this.path}/energy/reset`,
+      auth,
+      LightsLimiter,
+      this.deleteLightEnergyStats,
+    );
     this.router.delete(`${this.path}/history/reset`, auth, LightsLimiter, this.deleteLightHistory);
     this.router.delete(`${this.path}/rules/:id`, auth, LightsLimiter, this.deleteScheduleRule);
     this.router.delete(`${this.path}/scenes/:id`, auth, LightsLimiter, this.deleteLightScene);

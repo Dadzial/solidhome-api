@@ -2,7 +2,7 @@ import LightModel from '../../schemas/lights/lights.schema';
 import { ILight } from '../../models/lights/lights.model';
 import { Types } from 'mongoose';
 import logger from '../../../utils/logger';
-import MqttService from './mqtt.service';
+import MqttService from '../mqtt/mqtt.service';
 import LightsHistoryService from './lights-history.service';
 import LightsEnergyService from './lights-energy.service';
 

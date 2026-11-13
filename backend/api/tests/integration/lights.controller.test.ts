@@ -2,7 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import express from 'express';
 import request from 'supertest';
 import LightsController from '../../lib/controllers/lights.controller';
-import LightsControlService, { DEFAULT_LIGHTS } from '../../lib/modules/services/lights/lights-control.service';
+import LightsControlService, {
+  DEFAULT_LIGHTS,
+} from '../../lib/modules/services/lights/lights-control.service';
 import LightsHistoryService from '../../lib/modules/services/lights/lights-history.service';
 import LightsEnergyService from '../../lib/modules/services/lights/lights-energy.service';
 import LightsScheduleService from '../../lib/modules/services/lights/lights-schedule.service';

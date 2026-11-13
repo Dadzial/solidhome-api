@@ -79,9 +79,7 @@ class LightsScheduleService {
       }
       rule.active = typeof active === 'boolean' ? active : !rule.active;
       await rule.save();
-      logger.info(
-        `Toggled schedule rule "${rule.name}" (${rule._id}) active: ${rule.active}`,
-      );
+      logger.info(`Toggled schedule rule "${rule.name}" (${rule._id}) active: ${rule.active}`);
       return rule;
     } catch (error) {
       logger.error(`Error toggling schedule rule ${id}:`, error);
@@ -101,9 +99,7 @@ class LightsScheduleService {
         return false;
       }
       const result = await LightScheduleModel.deleteOne({ _id: new Types.ObjectId(id) });
-      logger.info(
-        `Deleted schedule rule ${id}, deletedCount: ${result.deletedCount}`,
-      );
+      logger.info(`Deleted schedule rule ${id}, deletedCount: ${result.deletedCount}`);
       return result.deletedCount > 0;
     } catch (error) {
       logger.error(`Error deleting schedule rule ${id}:`, error);
