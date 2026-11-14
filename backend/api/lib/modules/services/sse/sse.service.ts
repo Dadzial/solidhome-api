@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { createChannel, Channel, Session } from "better-sse";
 import logger from '../../../utils/logger';
 
 /**
@@ -18,23 +18,58 @@ interface SseEvent<T = unknown> {
 }
 
 /**
- * @interface SseClient
- * @param id - Unikalny identyfikator klienta SSE.
- * @param userId - Opcjonalny identyfikator użytkownika powiązanego z klientem SSE.
- * @param res - Obiekt odpowiedzi Express, używany do wysyłania zdarzeń SSE do klienta.
- * @description Interfejs reprezentujący klienta Server-Sent Events (SSE) w systemie.
- * Zawiera informacje o identyfikatorze klienta, opcjonalnym identyfikatorze użytkownika
- * oraz obiekcie odpowiedzi Express.
- */
-interface SseClient {
-    id: string;
-    userId?: string;
-    res: Response
-}
-
-/**
  * @class SseService
+ * @description Serwis odpowiedzialny za obsługę Server-Sent Events (SSE) w systemie.
+ * Umożliwia rejestrację klientów SSE, wysyłanie zdarzeń do wszystkich lub wybranych klientów,
+ * oraz zarządzanie połączeniami SSE.
  */
 class SseService {
+    /** Kanał komunikacyjny SSE, umożliwiający wysyłanie zdarzeń do klientów. */
+    private channel: Channel;
 
+    /**
+     * @constructor
+     */
+    constructor() {
+        this.channel = createChannel();
+        logger.info('Channel for SSE created');
+    }
+
+    /**
+     * Rejestruje nową sesję SSE w kanale komunikacyjnym.
+     * @param session - Obiekt sesji SSE do zarejestrowania.
+     * @returns {void}
+     */
+    public registerSession(session: Session): void {
+        this.channel.register(session);
+        logger.info(`See session registered. Active sessions: ${this.channel.sessionCount}`);
+    }
+
+    /**
+     * Wysyła zdarzenie do wszystkich otwartych sesji SSE.
+     *
+     * @param domain Domena zdarzenia ('lights', 'air', 'gates', 'security')
+     * @param event Nazwa zdarzenia (np. 'light_updated')
+     * @param data Ładunek danych
+     */
+    public broadcast<T>(domain: SseEvent['domain'], event: string, data: T): void {
+        const payload: SseEvent<T> = {
+            domain,
+            event,
+            data,
+            timestamp: new Date().toISOString(),
+        };
+
+        this.channel.broadcast(payload, `${domain}:${event}`);
+        logger.info(`Broadcast event "${domain}:${event}" sent to ${this.channel.sessionCount} sessions`);
+    }
+
+    /**
+     * Zwraca liczbę aktywnych sesji SSE w kanale komunikacyjnym.
+     * @returns {number} Liczba aktywnych sesji SSE.
+     */
+    public get activeSessionsCount(): number {
+        return this.channel.sessionCount;
+    }
 }
+export default SseService;
