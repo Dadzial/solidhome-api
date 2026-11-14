@@ -20,9 +20,9 @@ import { Types } from 'mongoose';
  */
 class LightsController implements Controller {
   /** Główna ścieżka bazowa dla tras świateł */
-  path = '/api/lights';
+  public path = '/api/lights';
   /** Router Express do rejestracji tras */
-  router = Router();
+  public router = Router();
 
   /**
    * @constructor
