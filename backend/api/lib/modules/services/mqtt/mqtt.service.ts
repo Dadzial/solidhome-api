@@ -27,7 +27,7 @@ export type MqttMessageHandler<T = unknown> = (
  * - Automatycznie dopasowuje prefiks tematu (`config.mqttTopicPrefix`).
  * - Obsługuje bezpieczną publikację komunikatów (QoS 0/1/2) oraz czyste zamykanie połączeń.
  */
-export class MqttService {
+class MqttService {
   /** Instancja klienta MQTT biblioteki `mqtt` */
   private client: MqttClient | null = null;
 
