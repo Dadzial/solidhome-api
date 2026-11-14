@@ -20,12 +20,6 @@ export type MqttMessageHandler<T = unknown> = (
  * @class MqttService
  * @description Centralny serwis infrastruktury odpowiedzialny za komunikację z brokerem MQTT.
  * Zapewnia uniwersalny mechanizm Pub/Sub dla wszystkich modułów.
- *
- * ### Funkcjonalności:
- * - Zarządza pojedynczym, współdzielonym połączeniem z brokerem MQTT.
- * - Umożliwia dowolnemu modułowi rejestrację subskrypcji na wybrane tematy z automatyczną resubskrypcją po wznowieniu połączenia.
- * - Automatycznie dopasowuje prefiks tematu (`config.mqttTopicPrefix`).
- * - Obsługuje bezpieczną publikację komunikatów (QoS 0/1/2) oraz czyste zamykanie połączeń.
  */
 class MqttService {
   /** Instancja klienta MQTT biblioteki `mqtt` */
