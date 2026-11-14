@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import UserService from '../../lib/modules/services/user/user.service';
-import UserModel from '../../lib/modules/schemas/user/user.schema';
+import UserService from '../../../lib/modules/services/user/user.service';
+import UserModel from '../../../lib/modules/schemas/user/user.schema';
 import { Types } from 'mongoose';
 
 describe('UserService', () => {

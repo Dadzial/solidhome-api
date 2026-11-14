@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import LightsHistoryService from '../../lib/modules/services/lights/lights-history.service';
-import lightsHistoryModel from '../../lib/modules/schemas/lights/lights-history.schema';
-import UserModel from '../../lib/modules/schemas/user/user.schema';
+import LightsHistoryService from '../../../lib/modules/services/lights/lights-history.service';
+import lightsHistoryModel from '../../../lib/modules/schemas/lights/lights-history.schema';
+import UserModel from '../../../lib/modules/schemas/user/user.schema';
 import { Types } from 'mongoose';
 
 describe('LightsHistoryService', () => {

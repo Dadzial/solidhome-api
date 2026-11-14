@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import LightsScheduleService from '../../lib/modules/services/lights/lights-schedule.service';
-import LightScheduleModel from '../../lib/modules/schemas/lights/lights-schedule.schema';
+import LightsScheduleService from '../../../lib/modules/services/lights/lights-schedule.service';
+import LightScheduleModel from '../../../lib/modules/schemas/lights/lights-schedule.schema';
 import { Types } from 'mongoose';
 
 describe('LightsScheduleService', () => {

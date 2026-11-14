@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import SseService from '../../lib/modules/services/sse/sse.service';
-import logger from '../../lib/utils/logger';
+import SseService from '../../../lib/modules/services/sse/sse.service';
+import logger from '../../../lib/utils/logger';
 
 let mockChannel: {
   register: ReturnType<typeof vi.fn>;

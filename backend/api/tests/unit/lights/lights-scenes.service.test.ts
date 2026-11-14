@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import LightsScenesService from '../../lib/modules/services/lights/lights-scenes.service';
-import LightSceneModel from '../../lib/modules/schemas/lights/lights-scene.schema';
+import LightsScenesService from '../../../lib/modules/services/lights/lights-scenes.service';
+import LightSceneModel from '../../../lib/modules/schemas/lights/lights-scene.schema';
 import { Types } from 'mongoose';
 
 describe('LightsScenesService', () => {

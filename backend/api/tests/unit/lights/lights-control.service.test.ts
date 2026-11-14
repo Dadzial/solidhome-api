@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import LightsControlService, {
   DEFAULT_LIGHTS,
-} from '../../lib/modules/services/lights/lights-control.service';
-import LightModel from '../../lib/modules/schemas/lights/lights.schema';
-import LightsHistoryService from '../../lib/modules/services/lights/lights-history.service';
-import LightsEnergyService from '../../lib/modules/services/lights/lights-energy.service';
-import MqttService from '../../lib/modules/services/mqtt/mqtt.service';
-import { seedDefaultLights } from '../helpers/lights.helper';
+} from '../../../lib/modules/services/lights/lights-control.service';
+import LightModel from '../../../lib/modules/schemas/lights/lights.schema';
+import LightsHistoryService from '../../../lib/modules/services/lights/lights-history.service';
+import LightsEnergyService from '../../../lib/modules/services/lights/lights-energy.service';
+import MqttService from '../../../lib/modules/services/mqtt/mqtt.service';
+import { seedDefaultLights } from '../../helpers/lights.helper';
 import { Types } from 'mongoose';
 
 describe('LightsControlService', () => {

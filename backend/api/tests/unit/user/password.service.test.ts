@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import PasswordService from '../../lib/modules/services/user/password.service';
-import PasswordModel from '../../lib/modules/schemas/user/password.schema';
+import PasswordService from '../../../lib/modules/services/user/password.service';
+import PasswordModel from '../../../lib/modules/schemas/user/password.schema';
 import { Types } from 'mongoose';
 import bcrypt from 'bcrypt';
 

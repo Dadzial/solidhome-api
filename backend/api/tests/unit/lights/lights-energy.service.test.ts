@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import LightsEnergyService from '../../lib/modules/services/lights/lights-energy.service';
-import LightEnergyModel from '../../lib/modules/schemas/lights/lights-energy.schema';
-import LightModel from '../../lib/modules/schemas/lights/lights.schema';
-import { seedDefaultLights } from '../helpers/lights.helper';
+import LightsEnergyService from '../../../lib/modules/services/lights/lights-energy.service';
+import LightEnergyModel from '../../../lib/modules/schemas/lights/lights-energy.schema';
+import LightModel from '../../../lib/modules/schemas/lights/lights.schema';
+import { seedDefaultLights } from '../../helpers/lights.helper';
 
 describe('LightsEnergyService', () => {
   let service: LightsEnergyService;

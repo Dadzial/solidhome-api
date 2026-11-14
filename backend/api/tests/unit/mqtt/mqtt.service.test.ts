@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import mqtt from 'mqtt';
-import MqttService from '../../lib/modules/services/mqtt/mqtt.service';
-import { config } from '../../lib/config';
+import MqttService from '../../../lib/modules/services/mqtt/mqtt.service';
+import { config } from '../../../lib/config';
 
 type Listener = (...args: any[]) => void;
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import EmailService from '../../lib/modules/services/user/email.service';
+import EmailService from '../../../lib/modules/services/user/email.service';
 import nodemailer from 'nodemailer';
-import { config } from '../../lib/config';
+import { config } from '../../../lib/config';
 
 describe('EmailService', () => {
   let service: EmailService;

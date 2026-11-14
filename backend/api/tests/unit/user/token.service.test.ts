@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import TokenService from '../../lib/modules/services/user/token.service';
-import TokenModel from '../../lib/modules/schemas/user/token.schema';
+import TokenService from '../../../lib/modules/services/user/token.service';
+import TokenModel from '../../../lib/modules/schemas/user/token.schema';
 import { Types } from 'mongoose';
 import jwt from 'jsonwebtoken';
-import { config } from '../../lib/config';
+import { config } from '../../../lib/config';
 
 describe('TokenService', () => {
   let service: TokenService;

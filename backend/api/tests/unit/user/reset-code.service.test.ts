@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import ResetCodeService from '../../lib/modules/services/user/reset-code.service';
-import ResetCodeModel from '../../lib/modules/schemas/user/reset-code.schema';
+import ResetCodeService from '../../../lib/modules/services/user/reset-code.service';
+import ResetCodeModel from '../../../lib/modules/schemas/user/reset-code.schema';
 import { Types } from 'mongoose';
 
 describe('ResetCodeService', () => {
