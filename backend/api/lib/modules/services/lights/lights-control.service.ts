@@ -3,6 +3,7 @@ import { ILight } from '../../models/lights/lights.model';
 import { Types } from 'mongoose';
 import logger from '../../../utils/logger';
 import MqttService from '../mqtt/mqtt.service';
+import SseService from '../sse/sse.service';
 import LightsHistoryService from './lights-history.service';
 import LightsEnergyService from './lights-energy.service';
 
@@ -31,11 +32,13 @@ class LightsControlService {
    * @param lightsHistoryService - Serwis odpowiedzialny za rejestrowanie historii zdarzeń przełączeń świateł.
    * @param lightsEnergyService - Opcjonalny serwis odpowiedzialny za naliczanie zużycia energii.
    * @param mqttService - Opcjonalny serwis odpowiedzialny za publikowanie zdarzeń MQTT do urządzeń zewnętrznych.
+   * @param sseService - Opcjonalny serwis odpowiedzialny za obsługę Server-Sent Events.
    */
   constructor(
     private lightsHistoryService: LightsHistoryService,
     private lightsEnergyService?: LightsEnergyService,
     private mqttService?: MqttService,
+    private sseService?: SseService,
   ) {
     this.initDefaultLights();
   }
@@ -101,6 +104,12 @@ class LightsControlService {
           name,
           state: newState,
           [name]: newState,
+        });
+      }
+      if (this.sseService) {
+        this.sseService.broadcast('lights', 'light_updated', {
+          name,
+          state: newState,
         });
       }
     }
