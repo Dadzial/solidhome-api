@@ -5,6 +5,7 @@ import LightsController from './controllers/lights.controller';
 import AirController from './controllers/air.controller';
 import EventController from './controllers/events.controller';
 import DocController from './controllers/doc.controller';
+import HardwareController from './controllers/hardware.controller';
 import UserService from './modules/services/user/user.service';
 import TokenService from './modules/services/user/token.service';
 import PasswordService from './modules/services/user/password.service';
@@ -18,6 +19,7 @@ import LightsScheduleService from './modules/services/lights/lights-schedule.ser
 import LightsScenesService from './modules/services/lights/lights-scenes.service';
 import MqttService from './modules/services/mqtt/mqtt.service';
 import SseService from './modules/services/sse/sse.service';
+import HardwareStatusService from './modules/services/hardware/hardware-status.service';
 
 /**
  * Fabryka inicjalizująca instancje serwisów oraz wstrzykująca je jako zależności do kontrolerów.
@@ -36,11 +38,13 @@ function createControllers(): Controller[] {
   const lightsScenesService = new LightsScenesService();
   const mqttService = new MqttService();
   const sseService = new SseService();
+  const hardwareStatusService = new HardwareStatusService(mqttService, sseService);
   const lightsService = new LightsControlService(
     lightsHistoryService,
     lightsEnergyService,
     mqttService,
     sseService,
+    hardwareStatusService,
   );
 
   return [
@@ -54,6 +58,7 @@ function createControllers(): Controller[] {
     new EventController(sseService),
     new HealthController(),
     new DocController(),
+    new HardwareController(hardwareStatusService),
     new AirController(),
     new UserController(userService, tokenService, passwordService, emailService, resetCodeService),
   ];

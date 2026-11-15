@@ -3,8 +3,7 @@ export const swaggerDocument = {
   info: {
     title: 'SolidHome API Doc',
     version: '1.0.0',
-    description:
-      'Dokumentacja REST API oraz Server-Sent Events (SSE) dla systemu.',
+    description: 'Dokumentacja REST API oraz Server-Sent Events (SSE) dla systemu.',
   },
   servers: [
     {
@@ -31,6 +30,10 @@ export const swaggerDocument = {
     },
     { name: 'Oświetlenie - Sceny', description: 'Zdefiniowane profile i sceny oświetleniowe' },
     { name: 'Zdarzenia (SSE)', description: 'Strumień Server-Sent Events w czasie rzeczywistym' },
+    {
+      name: 'System (Sprzęt IoT)',
+      description: 'Status połączenia z fizyczną płytką mikrokontrolera NXP',
+    },
   ],
   components: {
     securitySchemes: {
@@ -63,6 +66,29 @@ export const swaggerDocument = {
                   properties: {
                     status: { type: 'string', example: 'ok' },
                     message: { type: 'string', example: 'SolidHome API is running' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    '/api/hardware/status': {
+      get: {
+        tags: ['System (Sprzęt IoT)'],
+        summary: 'Pobiera aktualny status fizycznej płytki mikrokontrolera (online / offline)',
+        security: [] as Record<string, string[]>[],
+        responses: {
+          200: {
+            description: 'Status połączenia z płytką',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    online: { type: 'boolean', example: true },
                   },
                 },
               },

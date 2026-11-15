@@ -28,7 +28,7 @@ class DocController implements Controller {
    * Endpoint zwracający dokumentację Swaggera.
    * @route GET /api/docs
    * @access Private (Wymaga tokenu JWT)
-   * @param _req - Zapytanie Express
+   * @param _req - Zapytanie Express (nieużywane)
    * @param res - Odpowiedź Express z dokumentacją Swaggera
    */
   private getSwaggerDoc = (_req: Request, res: Response): void => {

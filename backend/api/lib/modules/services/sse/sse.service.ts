@@ -11,7 +11,7 @@ import logger from '../../../utils/logger';
  * Zawiera informacje o domenie, typie zdarzenia, danych oraz znaczniku czasu.
  */
 interface SseEvent<T = unknown> {
-  domain: 'lights' | 'air';
+  domain: 'lights' | 'air' | 'hardware';
   event: string;
   data: T;
   timestamp: string;
@@ -48,7 +48,7 @@ class SseService {
   /**
    * Wysyła zdarzenie do wszystkich otwartych sesji SSE.
    *
-   * @param domain Domena zdarzenia ('lights', 'air', 'gates', 'security')
+   * @param domain Domena zdarzenia ('lights', 'air', 'hardware')
    * @param event Nazwa zdarzenia (np. 'light_updated')
    * @param data Ładunek danych
    */

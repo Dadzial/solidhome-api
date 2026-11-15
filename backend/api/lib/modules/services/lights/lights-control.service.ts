@@ -4,6 +4,7 @@ import { Types } from 'mongoose';
 import logger from '../../../utils/logger';
 import MqttService from '../mqtt/mqtt.service';
 import SseService from '../sse/sse.service';
+import HardwareStatusService from '../hardware/hardware-status.service';
 import LightsHistoryService from './lights-history.service';
 import LightsEnergyService from './lights-energy.service';
 
@@ -33,12 +34,14 @@ class LightsControlService {
    * @param lightsEnergyService - Opcjonalny serwis odpowiedzialny za naliczanie zużycia energii.
    * @param mqttService - Opcjonalny serwis odpowiedzialny za publikowanie zdarzeń MQTT do urządzeń zewnętrznych.
    * @param sseService - Opcjonalny serwis odpowiedzialny za obsługę Server-Sent Events.
+   * @param boardStatusService - Opcjonalny serwis monitorujący status obecności fizycznej płytki mikrokontrolera.
    */
   constructor(
     private lightsHistoryService: LightsHistoryService,
     private lightsEnergyService?: LightsEnergyService,
     private mqttService?: MqttService,
     private sseService?: SseService,
+    private boardStatusService?: HardwareStatusService,
   ) {
     this.initDefaultLights();
   }
@@ -84,6 +87,10 @@ class LightsControlService {
     newState: number,
     userId?: Types.ObjectId,
   ): Promise<ILight> {
+    if (this.boardStatusService && !this.boardStatusService.isBoardOnline) {
+      throw new Error('hardware_offline');
+    }
+
     const light = await LightModel.findOne({ name });
     if (!light) {
       throw new Error(`Light with "${name}" not found`);

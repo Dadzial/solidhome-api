@@ -241,6 +241,12 @@ class LightsController implements Controller {
       const updatedLight = await this.lightsService.updateLightState(name, state, userId);
       return res.status(200).json(updatedLight);
     } catch (error) {
+      if (error instanceof Error && error.message === 'hardware_offline') {
+        logger.warn(`Rejected light update for "${name}": hardware board is offline`);
+        return res
+          .status(503)
+          .json({ message: 'Sterownik oświetlenia jest odłączony od zasilania' });
+      }
       logger.error(`Error updating light state for "${name}"`, error);
       return res
         .status(400)
