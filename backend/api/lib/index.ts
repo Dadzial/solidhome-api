@@ -4,6 +4,7 @@ import UserController from './controllers/user.controller';
 import LightsController from './controllers/lights.controller';
 import AirController from './controllers/air.controller';
 import EventController from './controllers/events.controller';
+import DocController from './controllers/doc.controller';
 import UserService from './modules/services/user/user.service';
 import TokenService from './modules/services/user/token.service';
 import PasswordService from './modules/services/user/password.service';
@@ -52,6 +53,7 @@ function createControllers(): Controller[] {
     ),
     new EventController(sseService),
     new HealthController(),
+    new DocController(),
     new AirController(),
     new UserController(userService, tokenService, passwordService, emailService, resetCodeService),
   ];
