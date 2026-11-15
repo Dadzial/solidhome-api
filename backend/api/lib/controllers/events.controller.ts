@@ -22,7 +22,7 @@ class EventsController implements Controller {
 
   /**
    * Inicjalizuje i rejestruje trasy kontrolera wraz z middleware'ami.
-   * @private
+   * @returns {void}
    */
   private initializeRoutes(): void {
     this.router.get(`${this.path}`, auth, this.streamEvents);

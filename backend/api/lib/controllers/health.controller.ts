@@ -22,8 +22,7 @@ class HealthController implements Controller {
 
   /**
    * Inicjalizuje i rejestruje trasy kontrolera wraz z middleware'ami.
-   * @private
-   * @returns void
+   * @returns {void}
    */
   private initializeRoutes(): void {
     this.router.get(`${this.path}`, this.healthCheck);

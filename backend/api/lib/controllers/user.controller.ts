@@ -49,7 +49,7 @@ class UserController implements Controller {
 
   /**
    * Inicjalizuje i rejestruje trasy kontrolera wraz z middleware'ami (rate limitery, auth).
-   * @private
+   * @returns {void}
    */
   private initializeRouters(): void {
     this.router.post(`${this.path}/create`, createAccountLimiter, this.createNew);
