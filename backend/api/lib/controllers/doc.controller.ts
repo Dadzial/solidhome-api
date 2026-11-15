@@ -1,6 +1,5 @@
 import Controller from '../interfaces/controller.interface';
 import { Router, Request, Response } from 'express';
-import swaggerUi from 'swagger-ui-express';
 import { swaggerDocument } from '../docs/swagger';
 
 class DocController implements Controller {
@@ -32,16 +31,40 @@ class DocController implements Controller {
    * @param req - Zapytanie Express
    * @param res - Odpowiedź Express z dokumentacją Swaggera
    */
-  private getSwaggerDoc = (req: Request, res: Response): void => {
-    const html = swaggerUi.generateHTML(swaggerDocument, {
-      customCssUrl: 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css',
-      customJs: [
-        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.js',
-      ],
-    });
-
+  private getSwaggerDoc = (_req: Request, res: Response): void => {
+    const html = `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>SolidHome API Documentation</title>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui.min.css" />
+      <style>
+        body { margin: 0; background: #fafafa; }
+      </style>
+    </head>
+    <body>
+      <div id="swagger-ui"></div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-bundle.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.11.0/swagger-ui-standalone-preset.min.js"></script>
+      <script>
+        window.onload = () => {
+          window.ui = SwaggerUIBundle({
+            spec: ${JSON.stringify(swaggerDocument)},
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+              SwaggerUIBundle.presets.apis,
+              SwaggerUIStandalonePreset
+            ],
+            layout: "BaseLayout"
+          });
+        };
+      </script>
+    </body>
+    </html>`;
+    res.setHeader('Content-Type', 'text/html');
     res.send(html);
   };
 }
+
 export default DocController;
