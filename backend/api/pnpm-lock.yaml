@@ -27,8 +27,8 @@ importers:
         specifier: 4.22.1
         version: 4.22.1(supports-color@5.5.0)
       express-rate-limit:
-        specifier: 8.7.1
-        version: 8.7.1(express@4.22.1(supports-color@5.5.0))(supports-color@5.5.0)
+        specifier: 8.7.2
+        version: 8.7.2(express@4.22.1(supports-color@5.5.0))(supports-color@5.5.0)
       joi:
         specifier: 18.3.1
         version: 18.3.1
@@ -36,8 +36,8 @@ importers:
         specifier: 9.0.3
         version: 9.0.3
       mongoose:
-        specifier: 9.11.1
-        version: 9.11.1(socks@2.8.10)
+        specifier: 9.11.4
+        version: 9.11.4(socks@2.8.10)
       morgan:
         specifier: 1.12.1
         version: 1.12.1(supports-color@5.5.0)
@@ -45,8 +45,11 @@ importers:
         specifier: ^5.16.1
         version: 5.16.1(supports-color@5.5.0)
       nodemailer:
-        specifier: 10.1.4
-        version: 10.1.4
+        specifier: 10.4.1
+        version: 10.4.1
+      swagger-ui-express:
+        specifier: ^5.0.1
+        version: 5.0.1(express@4.22.1(supports-color@5.5.0))
       winston:
         specifier: 3.19.0
         version: 3.19.0
@@ -81,6 +84,9 @@ importers:
       '@types/supertest':
         specifier: 7.2.1
         version: 7.2.1
+      '@types/swagger-ui-express':
+        specifier: ^4.1.8
+        version: 4.1.8
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(vitest@5.0.5)
@@ -379,6 +385,9 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
+  '@scarf/scarf@1.4.0':
+    resolution: {integrity: sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==}
+
   '@so-ric/colorspace@1.1.6':
     resolution: {integrity: sha512-/KiKkpHNOBgkFJwu9sh48LkHSMYGyuTcSFK/qMBdnOAlrRJzRSXAOFB5qwzaVQuDl8wAvHVMkaASQDReTahxuw==}
 
@@ -474,6 +483,9 @@ packages:
 
   '@types/supertest@7.2.1':
     resolution: {integrity: sha512-4CbBvoYVLHL7+yhbYrZET0vsvuyXTC05aRe7dNQkwMzm56auceoy6Yu3K50uZmwfHna1os3CMSgM/3QVkUtPTw==}
+
+  '@types/swagger-ui-express@4.1.8':
+    resolution: {integrity: sha512-AhZV8/EIreHFmBV5wAs0gzJUNq9JbbSXgJLQubCC0jtIo6prnI9MIRRxnU4MZX9RB9yXxF1V4R7jtLl/Wcj31g==}
 
   '@types/triple-beam@1.3.5':
     resolution: {integrity: sha512-6WaYesThRMCl19iryMYP7/x2OVgCtbIVflDGFpWnb9irXI3UjYE4AzmYuiUKY1AJstGijoY+MgUszMgRxIYTYw==}
@@ -1011,8 +1023,8 @@ packages:
     resolution: {integrity: sha512-KfYbmpRm0VbLjEvVa9yGwCi9GI34xvi7A/HXYWQO65CSD2u3MczUJSuwXKFIxlGsgBQizV9q5J9NHj4VG0n+pA==}
     engines: {node: '>=12.0.0'}
 
-  express-rate-limit@8.7.1:
-    resolution: {integrity: sha512-2FXbqkygil3mZiXzEtM0IjE/UBmBNot0J1GEVrJT4JbrvwOSoEtqtO+wHbiMQELWe1eNvHoYRg2dkjOid+6JkA==}
+  express-rate-limit@8.7.2:
+    resolution: {integrity: sha512-U1ScocxDD9WI09LaBVypvNkOtNR5yWAmZLkuKJdAzIchA4YKFYF6GT5IKER7epG58oXtjvGlV0/6ii0F83EyZg==}
     engines: {node: '>= 16'}
     peerDependencies:
       express: '>= 4.11'
@@ -1261,8 +1273,8 @@ packages:
   jws@4.0.1:
     resolution: {integrity: sha512-EKI/M/yqPncGUUh44xz0PxSidXFr/+r0pA70+gIYhjv+et7yxM+s29Y+VGDkovRofQem0fs7Uvf4+YmAdyRduA==}
 
-  kareem@3.4.0:
-    resolution: {integrity: sha512-JAKhnR4S027v/8949QXNInRskgETCg9rFUMi1VjhGbjX+XltCAAEFcXykkSocNkom1kc66EMJfjWvhj87BDQKg==}
+  kareem@3.4.1:
+    resolution: {integrity: sha512-UlgCAFNAdk/HLSsbfkmbH8pJqpEN52Ek8RG53Ys1i3Q3gbCQruSrWpplZlgIGyDHX/LNoLW97ei3OG43s7UhUA==}
     engines: {node: '>=18.0.0'}
 
   keyv@5.6.0:
@@ -1522,8 +1534,8 @@ packages:
       socks:
         optional: true
 
-  mongoose@9.11.1:
-    resolution: {integrity: sha512-fVtjTVACOtAb0PjDDF+O5NebcEJy5JpAH+AXk16/5i36w38YkW6MZ+KWV54bdIOJFymDz1VjjA5Xg6L2QfjQjQ==}
+  mongoose@9.11.4:
+    resolution: {integrity: sha512-+xME0fduXl1sWF+NZpJHZaNcwQSt+X2vbJ/h7GRSZ/ltLycAkGZSEABhzic0+q3IMF66KqF0viEE5+frchKCAQ==}
     engines: {node: '>=20.19.0'}
 
   morgan@1.12.1:
@@ -1542,8 +1554,8 @@ packages:
     engines: {node: '>=16.0.0'}
     hasBin: true
 
-  mquery@6.0.0:
-    resolution: {integrity: sha512-b2KQNsmgtkscfeDgkYMcWGn9vZI9YoXh802VDEwE6qc50zxBFQ0Oo8ROkawbPAsXCY1/Z1yp0MagqsZStPWJjw==}
+  mquery@6.0.1:
+    resolution: {integrity: sha512-/Nijmq3JcpHwDM+5CwBp5yEl6fUa6jLsIhPsoQywlGXU/ZrKIvSpBzfaGnW9BLqcne/CoUwd1ch7MRqptDgFTA==}
     engines: {node: '>=20.19.0'}
 
   ms@2.0.0:
@@ -1576,8 +1588,8 @@ packages:
     resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
     hasBin: true
 
-  nodemailer@10.1.4:
-    resolution: {integrity: sha512-EsMnOR2oRv4LGnWvHgcVYkkQ4O2j8KO4WTw6l+PHR4sOXo8SAgIraxtEnGDmotjbhv0hDsu3IuDIFZm8iXwO4A==}
+  nodemailer@10.4.1:
+    resolution: {integrity: sha512-CyGM/J+n6W72v2B44BOkIrrQ/cvhm2fOa7fkQDHYOqtjM8stumU5ey3uv9oJ2ryShNit79NaEW/vXznvt/35vA==}
     engines: {node: '>=20.0.0'}
 
   nodemon@2.0.22:
@@ -1869,6 +1881,15 @@ packages:
   supports-color@5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
     engines: {node: '>=4'}
+
+  swagger-ui-dist@5.35.0:
+    resolution: {integrity: sha512-U06rpMtW9V3XPGOBeamTUSr0Z09jMX4IJuANpE/EZbAhw0G8CgwrzU4YmXkn/h0wCDNsXdGarTNNHC3sU8yVUQ==}
+
+  swagger-ui-express@5.0.1:
+    resolution: {integrity: sha512-SrNU3RiBGTLLmFU8GIJdOdanJTl4TOmT27tt3bWWHppqYmAZ6IDuEuBvMU6nZq0zLEe6b/1rACXCgLZqO6ZfrA==}
+    engines: {node: '>= v0.10.32'}
+    peerDependencies:
+      express: '>=4.0.0 || >=5.0.0-beta'
 
   tar-stream@3.2.2:
     resolution: {integrity: sha512-+8NeqHRjQWH9nYlwo2gamAMImZCVzI4UoEgDpWorBt9OEfppiZn+uSkskzQKPWIZyji/C8fpWO7u69G0DX0tbg==}
@@ -2340,6 +2361,8 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
+  '@scarf/scarf@1.4.0': {}
+
   '@so-ric/colorspace@1.1.6':
     dependencies:
       color: 5.0.3
@@ -2452,6 +2475,11 @@ snapshots:
     dependencies:
       '@types/methods': 1.1.4
       '@types/superagent': 8.1.11
+
+  '@types/swagger-ui-express@4.1.8':
+    dependencies:
+      '@types/express': 4.17.17
+      '@types/serve-static': 2.2.0
 
   '@types/triple-beam@1.3.5': {}
 
@@ -3018,7 +3046,7 @@ snapshots:
 
   expect-type@1.4.0: {}
 
-  express-rate-limit@8.7.1(express@4.22.1(supports-color@5.5.0))(supports-color@5.5.0):
+  express-rate-limit@8.7.2(express@4.22.1(supports-color@5.5.0))(supports-color@5.5.0):
     dependencies:
       debug: 4.4.3(supports-color@5.5.0)
       express: 4.22.1(supports-color@5.5.0)
@@ -3303,7 +3331,7 @@ snapshots:
       jwa: 2.0.1
       safe-buffer: 5.2.1
 
-  kareem@3.4.0: {}
+  kareem@3.4.1: {}
 
   keyv@5.6.0:
     dependencies:
@@ -3517,13 +3545,13 @@ snapshots:
     optionalDependencies:
       socks: 2.8.10
 
-  mongoose@9.11.1(socks@2.8.10):
+  mongoose@9.11.4(socks@2.8.10):
     dependencies:
       '@standard-schema/spec': 1.1.0
-      kareem: 3.4.0
+      kareem: 3.4.1
       mongodb: 7.7.0(socks@2.8.10)
       mpath: 0.9.0
-      mquery: 6.0.0
+      mquery: 6.0.1
       ms: 2.1.3
       sift: 17.1.3
     transitivePeerDependencies:
@@ -3577,7 +3605,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  mquery@6.0.0: {}
+  mquery@6.0.1: {}
 
   ms@2.0.0: {}
 
@@ -3599,7 +3627,7 @@ snapshots:
 
   node-gyp-build@4.8.4: {}
 
-  nodemailer@10.1.4: {}
+  nodemailer@10.4.1: {}
 
   nodemon@2.0.22:
     dependencies:
@@ -3925,6 +3953,15 @@ snapshots:
   supports-color@5.5.0:
     dependencies:
       has-flag: 3.0.0
+
+  swagger-ui-dist@5.35.0:
+    dependencies:
+      '@scarf/scarf': 1.4.0
+
+  swagger-ui-express@5.0.1(express@4.22.1(supports-color@5.5.0)):
+    dependencies:
+      express: 4.22.1(supports-color@5.5.0)
+      swagger-ui-dist: 5.35.0
 
   tar-stream@3.2.2:
     dependencies:
