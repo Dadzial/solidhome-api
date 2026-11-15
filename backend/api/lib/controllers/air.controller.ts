@@ -10,6 +10,7 @@ import { Router } from 'express';
 class AirController implements Controller {
   /** Główna ścieżka bazowa dla odczytów i zapisów danych jakości powietrza */
   public path = '/api/air';
+
   /** Router Express do rejestracji tras */
   public router = Router();
 

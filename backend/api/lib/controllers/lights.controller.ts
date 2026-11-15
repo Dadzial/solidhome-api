@@ -21,6 +21,7 @@ import { Types } from 'mongoose';
 class LightsController implements Controller {
   /** Główna ścieżka bazowa dla tras świateł */
   public path = '/api/lights';
+
   /** Router Express do rejestracji tras */
   public router = Router();
 

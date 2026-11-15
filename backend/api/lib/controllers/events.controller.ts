@@ -8,6 +8,7 @@ import { createSession } from 'better-sse';
 class EventsController implements Controller {
   /** Główna ścieżka bazowa dla tras zdarzeń */
   public path = '/api/events';
+
   /** Router Express do rejestracji tras */
   public router = Router();
 

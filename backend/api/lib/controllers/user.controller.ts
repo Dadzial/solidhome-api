@@ -25,6 +25,7 @@ import Joi from 'joi';
 class UserController implements Controller {
   /** Główna ścieżka bazowa dla tras użytkownika */
   public path = '/api/user';
+
   /** Router Express do obsługi tras */
   public router = Router();
 

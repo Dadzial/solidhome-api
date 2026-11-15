@@ -9,6 +9,7 @@ import Controller from '../interfaces/controller.interface';
 class HealthController implements Controller {
   /** Główna ścieżka bazowa dla endpointu zdrowia */
   public path = '/';
+
   /** Router Express do rejestracji trasy */
   public router = Router();
 
