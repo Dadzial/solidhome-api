@@ -6,9 +6,9 @@ import { Types } from 'mongoose';
  * Definiuje strukturę typów TypeScript wykorzystywaną przez schemat Mongoose (AirSchema).
  */
 export interface IAir {
-    _id?: Types.ObjectId;
-    temperature: number;
-    humidity: number;
-    pressure: number;
-    createdAt?: Date;
+  _id?: Types.ObjectId;
+  temperature: number;
+  humidity: number;
+  pressure: number;
+  createdAt?: Date;
 }
