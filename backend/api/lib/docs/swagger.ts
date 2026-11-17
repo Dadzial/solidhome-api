@@ -1,3 +1,6 @@
+/**
+ * Dokumentacja API w formacie OpenAPI 3.0.
+ */
 export const swaggerDocument = {
   openapi: '3.0.0',
   info: {
