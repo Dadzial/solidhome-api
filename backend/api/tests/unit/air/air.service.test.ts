@@ -147,4 +147,17 @@ describe('AirService', () => {
       expect(history[2].temperature).toBe(25);
     });
   });
+
+  describe('clearHistory', () => {
+    it('should delete all air records from database', async () => {
+      await AirModel.create({ temperature: 22, humidity: 50, pressure: 1000 });
+      await AirModel.create({ temperature: 23, humidity: 52, pressure: 1002 });
+
+      const result = await service.clearHistory();
+      expect(result.deletedCount).toBe(2);
+
+      const count = await AirModel.countDocuments();
+      expect(count).toBe(0);
+    });
+  });
 });

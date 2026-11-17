@@ -7,6 +7,7 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     testTimeout: 30000,
     pool: "forks",
+    fileParallelism: false,
     exclude: ["**/node_modules/**", "**/dist/**"],
     coverage: {
       provider: "v8",
@@ -16,7 +17,6 @@ export default defineConfig({
         "lib/index.ts",
         "lib/app.ts",
         "lib/config.ts",
-        "lib/controllers/air.controller.ts",
         "lib/interfaces/**",
         "lib/modules/models/**",
       ],
