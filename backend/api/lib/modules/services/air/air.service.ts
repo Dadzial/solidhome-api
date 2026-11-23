@@ -72,13 +72,8 @@ class AirService {
    * Weryfikuje czy fizyczna płytka jest online.
    *
    * @returns {Promise<IAir | null>}
-   * @throws Error 'hardware_offline' gdy płytka mikrokontrolera nie odpowiada.
    */
   public async getCurrentAir(): Promise<IAir | null> {
-    if (this.boardStatusService && !this.boardStatusService.isBoardOnline) {
-      throw new Error('hardware_offline');
-    }
-
     return await AirModel.findOne().sort({ createdAt: -1 }).lean();
   }
 
