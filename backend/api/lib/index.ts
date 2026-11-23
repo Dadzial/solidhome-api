@@ -47,7 +47,7 @@ function createControllers(): Controller[] {
     sseService,
     hardwareStatusService,
   );
-  const airService = new AirService(mqttService, sseService, hardwareStatusService);
+  const airService = new AirService(mqttService, sseService);
 
   return [
     new LightsController(
