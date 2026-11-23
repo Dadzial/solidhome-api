@@ -2,6 +2,12 @@ import Controller from '../interfaces/controller.interface';
 import { Router, Request, Response } from 'express';
 import { swaggerDocument } from '../docs/swagger';
 
+/**
+ * @class DocController
+ * @implements Controller
+ * @description Kontroler odpowiedzialny za udostępnianie dokumentacji Swaggera dla API SolidHome.
+ * Udostępnia endpoint REST do pobierania dokumentacji w formacie HTML.
+ */
 class DocController implements Controller {
   /** Główna ścieżka bazowa dla tras dokumentacji */
   public path = '/api/docs';

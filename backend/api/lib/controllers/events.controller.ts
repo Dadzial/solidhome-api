@@ -5,6 +5,12 @@ import SseService from '../modules/services/sse/sse.service';
 import logger from '../utils/logger';
 import { createSession } from 'better-sse';
 
+/**
+ * @class EventsController
+ * @implements Controller
+ * @description Kontroler odpowiedzialny za obsługę zdarzeń w systemie SolidHome.
+ * Udostępnia endpoint REST do strumieniowania zdarzeń w czasie rzeczywistym przy użyciu SSE (Server-Sent Events).
+ */
 class EventsController implements Controller {
   /** Główna ścieżka bazowa dla tras zdarzeń */
   public path = '/api/events';

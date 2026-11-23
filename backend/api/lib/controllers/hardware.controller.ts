@@ -3,7 +3,10 @@ import { Router, Request, Response } from 'express';
 import HardwareStatusService from '../modules/services/hardware/hardware-status.service';
 
 /**
- * Kontroler udostępniający informacje o stanie systemu i podłączonym sprzęcie IoT.
+ * @class HardwareController
+ * @implements Controller
+ * @description Kontroler odpowiedzialny za obsługę tras związanych z fizyczną płytką mikrokontrolera w systemie SolidHome.
+ * Udostępnia endpoint REST do sprawdzania stanu obecności płytki w sieci (online / offline).
  */
 class HardwareController implements Controller {
   /** Główna ścieżka bazowa dla tras systemowych */
