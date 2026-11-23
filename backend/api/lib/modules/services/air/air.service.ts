@@ -3,7 +3,7 @@ import { IAir } from '../../models/air/air.model';
 import logger from '../../../utils/logger';
 import MqttService from '../mqtt/mqtt.service';
 import SseService from '../sse/sse.service';
-import HardwareStatusService from '../hardware/hardware-status.service';
+
 
 /**
  * @class AirService
@@ -16,12 +16,10 @@ class AirService {
    * @constructor
    * @param mqttService - Opcjonalny serwis odpowiedzialny za publikowanie zdarzeń MQTT do urządzeń zewnętrznych.
    * @param sseService - Opcjonalny serwis odpowiedzialny za obsługę Server-Sent Events.
-   * @param boardStatusService - Opcjonalny serwis monitorujący status obecności fizycznej płytki mikrokontrolera.
    */
   constructor(
     private mqttService?: MqttService,
     private sseService?: SseService,
-    private boardStatusService?: HardwareStatusService,
   ) {
     this.initMqttSubscription();
   }

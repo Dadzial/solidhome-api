@@ -110,12 +110,13 @@ describe('AirService', () => {
       expect(current).toBeNull();
     });
 
-    it('should throw hardware_offline error when board is offline', async () => {
+    it('should return data or null without throwing even when board is offline', async () => {
       Object.defineProperty(mockBoardStatusService, 'isBoardOnline', {
         get: () => false,
       });
 
-      await expect(service.getCurrentAir()).rejects.toThrow('hardware_offline');
+      const current = await service.getCurrentAir();
+      expect(current).toBeNull();
     });
   });
 
