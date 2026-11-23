@@ -31,7 +31,8 @@ class HealthController implements Controller {
   /**
    * Endpoint zdrowia aplikacji.
    * Zwraca status 200 OK z informacją, że SolidHome API działa poprawnie.
-   * @access Private
+   * @route GET /
+   * @access Public
    * @param req - Obiekt żądania Express
    * @param res - Obiekt odpowiedzi Express
    * @returns void

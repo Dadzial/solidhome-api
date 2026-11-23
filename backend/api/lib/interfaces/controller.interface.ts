@@ -1,10 +1,10 @@
 import { Router } from 'express';
 
 /**
- *  @interface Controller
- *  @param path - sciezka do kontrolera
- *  @param router - router express
- *  @description interface który reprezentuje to co każdy controller powinien implementować
+ * @interface Controller
+ * @property {string} path - Główna ścieżka bazowa tras obsługiwanych przez kontroler.
+ * @property {Router} router - Instancja routera Express rejestrująca trasy kontrolera.
+ * @description Bazowy interfejs, który musi implementować każdy kontroler w systemie SolidHome.
  */
 interface Controller {
   path: string;

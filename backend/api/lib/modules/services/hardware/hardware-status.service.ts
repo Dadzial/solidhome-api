@@ -3,9 +3,8 @@ import SseService from '../sse/sse.service';
 import logger from '../../../utils/logger';
 
 /**
- * Serwis monitorujący status obecności fizycznej płytki mikrokontrolera (NXP) w sieci domowej.
- * Odbiera cykliczne sygnały heartbeat przez MQTT. Jeśli sygnał nie dotrze w określonym czasie,
- * uznaje płytkę za offline i rozsyła powiadomienie przez Server-Sent Events (SSE).
+ * @class HardwareStatusService
+ * @description Serwis monitorujący status obecności fizycznej płytki mikrokontrolera (NXP) w sieci domowej...
  */
 export class HardwareStatusService {
   /** Flaga określająca bieżący stan połączenia z fizyczną płytką */
