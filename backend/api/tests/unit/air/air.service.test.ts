@@ -3,13 +3,11 @@ import AirService from '../../../lib/modules/services/air/air.service';
 import AirModel from '../../../lib/modules/schemas/air/air.schema';
 import MqttService from '../../../lib/modules/services/mqtt/mqtt.service';
 import SseService from '../../../lib/modules/services/sse/sse.service';
-import HardwareStatusService from '../../../lib/modules/services/hardware/hardware-status.service';
 
 describe('AirService', () => {
   let service: AirService;
   let mockMqttService: Partial<MqttService>;
   let mockSseService: Partial<SseService>;
-  let mockBoardStatusService: Partial<HardwareStatusService>;
   let mqttHandler: (payload: unknown) => Promise<void>;
 
   beforeEach(async () => {
@@ -26,15 +24,7 @@ describe('AirService', () => {
       broadcast: vi.fn(),
     };
 
-    mockBoardStatusService = {
-      isBoardOnline: true,
-    };
-
-    service = new AirService(
-      mockMqttService as MqttService,
-      mockSseService as SseService,
-      mockBoardStatusService as HardwareStatusService,
-    );
+    service = new AirService(mockMqttService as MqttService, mockSseService as SseService);
   });
 
   describe('initMqttSubscription', () => {
@@ -105,16 +95,7 @@ describe('AirService', () => {
       expect(current!.pressure).toBe(1015.0);
     });
 
-    it('should return null if database has no records and board is online', async () => {
-      const current = await service.getCurrentAir();
-      expect(current).toBeNull();
-    });
-
-    it('should return data or null without throwing even when board is offline', async () => {
-      Object.defineProperty(mockBoardStatusService, 'isBoardOnline', {
-        get: () => false,
-      });
-
+    it('should return null if database has no records', async () => {
       const current = await service.getCurrentAir();
       expect(current).toBeNull();
     });
