@@ -6,6 +6,7 @@ import { DEFAULT_LIGHTS } from './lights-control.service';
 import logger from '../../../utils/logger';
 
 /**
+ * @const LIGHT_WATTS
  * Moc żarówek (w watach) dla poszczególnych punktów oświetlenia.
  */
 const LIGHT_WATTS: Record<string, number> = {
@@ -21,6 +22,8 @@ const MAX_LIVE_POINTS = 20;
 
 /**
  * Zwraca datę w formacie YYYY-MM-DD w lokalnej strefie czasowej.
+ * @param d - Obiekt Date, domyślnie bieżąca data i godzina.
+ * @returns {string} - Data w formacie YYYY-MM-DD.
  */
 function getLocalDateString(d: Date = new Date()): string {
   const year = d.getFullYear();
@@ -31,6 +34,8 @@ function getLocalDateString(d: Date = new Date()): string {
 
 /**
  * Zwraca czas w formacie HH:mm:ss.
+ * @param d - Obiekt Date, domyślnie bieżąca data i godzina.
+ * @returns {string} - Czas w formacie HH:mm:ss.
  */
 function getTimeString(d: Date = new Date()): string {
   const hh = String(d.getHours()).padStart(2, '0');
@@ -59,6 +64,9 @@ class LightsEnergyService {
   /**
    * Inicjalizuje serię punktów dla widoku czasu rzeczywistego (ostatnie MAX_LIVE_POINTS minut, format HH:mm bez sekund).
    * Tworzy bufor dla całego domu oraz niezależny bufor dla każdego pokoju.
+   * @param record - Dokument Mongoose reprezentujący dzienny rekord zużycia energii.
+   * @param now - Opcjonalna data i godzina, domyślnie bieżący czas.
+   * @returns void
    */
   private initializeLivePoints(record: any, now: Date = new Date()): void {
     const categories: string[] = [];
@@ -81,6 +89,11 @@ class LightsEnergyService {
   /**
    * Dopisuje lub aktualizuje punkt w czasie rzeczywistym w serii danych.
    * Bufor przesuwa się w formacie HH:mm (bez sekund) zarówno dla całego domu, jak i dla każdego pokoju.
+   *
+   * @param record - Dokument Mongoose reprezentujący dzienny rekord zużycia energii.
+   * @param lightsStateMap - Mapa aktualnych stanów włączonych/wyłączonych świateł (1 = ON, 0 = OFF).
+   * @param now - Opcjonalna data i godzina, domyślnie bieżący czas.
+   * @returns void
    */
   private appendLivePoint(
     record: any,
@@ -172,6 +185,9 @@ class LightsEnergyService {
 
   /**
    * Zwraca lub tworzy dokument dzienny w bazie danych.
+   *
+   * @param dateStr - Data w formacie YYYY-MM-DD (np. '2024-06-15').
+   * @returns Promise<any> - Dokument dzienny zainicjalizowany dla podanej daty.
    */
   private async getOrCreateDayRecord(dateStr: string): Promise<any> {
     let record = await LightEnergyModel.findOne({ name: `day_${dateStr}` });
@@ -219,6 +235,7 @@ class LightsEnergyService {
    *
    * @param name - Nazwa punktu świetlnego (np. 'living_room')
    * @param newState - 1 (włączone) lub 0 (wyłączone)
+   * @returns Promise<void>
    */
   public async accumulateEnergyOnStateChange(name: string, newState: number): Promise<void> {
     try {
@@ -297,6 +314,9 @@ class LightsEnergyService {
 
   /**
    * Wylicza sekcję TOP 3 największego zużycia wraz z procentami.
+   * @param lightsKwh - Mapa zużycia energii w kWh dla każdego światła.
+   * @param totalHouseKwh - Całkowite zużycie energii dla wszystkich świateł w domu.
+   * @returns {ITopRoomEnergy[]} - Posortowana lista trzech pomieszczeń o największym zużyciu energii.
    */
   private calculateTopRooms(
     lightsKwh: Record<string, number>,
@@ -323,6 +343,7 @@ class LightsEnergyService {
    *
    * @param timeframe - 'today' | 'week' | 'month'
    * @param roomName - 'entireHouse' lub nazwa konkretnego pokoju
+   * @returns {Promise<ILightEnergy>} - Obiekt reprezentujący statystyki zużycia energii.
    */
   public async getEnergyStats(
     timeframe: EnergyTimeframe = 'today',

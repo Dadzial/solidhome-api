@@ -59,7 +59,7 @@ export class HardwareStatusService {
   public handleHeartbeat(): void {
     if (!this.isOnline) {
       this.isOnline = true;
-      logger.info('[HardwareStatusService] Hardware board is now ONLINE');
+      logger.info('Hardware board is now ONLINE');
       this.sseService.broadcast('hardware', 'status', { online: true });
     }
 
@@ -69,7 +69,7 @@ export class HardwareStatusService {
 
     this.heartbeatTimeout = setTimeout(() => {
       this.isOnline = false;
-      logger.warn('[HardwareStatusService] Hardware board HEARTBEAT TIMEOUT -> OFFLINE');
+      logger.warn('Hardware board HEARTBEAT TIMEOUT -> OFFLINE');
       this.sseService.broadcast('hardware', 'status', { online: false });
     }, this.timeoutMs);
   }
