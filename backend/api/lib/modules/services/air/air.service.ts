@@ -4,7 +4,6 @@ import logger from '../../../utils/logger';
 import MqttService from '../mqtt/mqtt.service';
 import SseService from '../sse/sse.service';
 
-
 /**
  * @class AirService
  * @description Serwis odpowiedzialny za zarządzanie danymi z czujnika powietrza w systemie SolidHome.
