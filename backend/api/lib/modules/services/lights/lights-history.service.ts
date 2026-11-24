@@ -1,15 +1,24 @@
 import lightsHistoryModel from '../../schemas/lights/lights-history.schema';
 import { ILightHistory } from '../../models/lights/lights-history.model';
 import { Types } from 'mongoose';
+import SseService from '../sse/sse.service';
 import logger from '../../../utils/logger';
 
 /**
  * @class LightsHistoryService
- * @description Serwis odpowiedzialny za rejestrowanie oraz odczyt historii zdarzeń (logów) przełączeń świateł w systemie SolidHome.
+ * @description Serwis odpowiedzialny za rejestrowanie, odczyt oraz rozgłaszanie przez SSE
+ * historii zdarzeń (logów) przełączeń świateł w systemie SolidHome.
  */
 class LightsHistoryService {
   /**
-   * Zapisuje nowe zdarzenie przełączenia światła w dzienniku historii.
+   * @constructor
+   * @param sseService - Opcjonalny serwis odpowiedzialny za obsługę Server-Sent Events.
+   */
+  constructor(private sseService?: SseService) {}
+
+  /**
+   * Zapisuje nowe zdarzenie przełączenia światła w dzienniku historii
+   * oraz rozgłasza zaktualizowaną historię do aktywnych klientów SSE.
    *
    * @param name - Nazwa przełączonego światła (np. 'living_room').
    * @param state - Nowy zarejestrowany stan zasilania: 0 (wyłączone) lub 1 (włączone).
@@ -29,6 +38,7 @@ class LightsHistoryService {
         userId,
       });
       logger.info(`[LightsHistoryService] Saved history entry: ${name} -> state: ${state}`);
+      await this.broadcastHistory();
       return entry;
     } catch (error) {
       logger.error(`[LightsHistoryService] Error saving history entry for ${name}:`, error);
@@ -68,10 +78,33 @@ class LightsHistoryService {
     try {
       const result = await lightsHistoryModel.deleteMany({});
       logger.info('Successfully reset lights history.');
+      if (this.sseService && this.sseService.activeSessionsCount > 0) {
+        this.sseService.broadcast('lights', 'history_updated', []);
+      }
       return result;
     } catch (error) {
       logger.error('Error resetting lights history:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Pobiera ostatnie 20 wpisów historii świateł i rozgłasza je przez SSE,
+   * jeśli istnieje co najmniej jedna aktywna sesja SSE.
+   *
+   * @private
+   * @returns {Promise<void>}
+   */
+  private async broadcastHistory(): Promise<void> {
+    if (!this.sseService || this.sseService.activeSessionsCount === 0) {
+      return;
+    }
+
+    try {
+      const history = await this.getHistory(20);
+      this.sseService.broadcast('lights', 'history_updated', history);
+    } catch (error) {
+      logger.error('Error broadcasting lights history via SSE:', error);
     }
   }
 }

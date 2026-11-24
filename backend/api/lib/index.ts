@@ -33,9 +33,9 @@ function createControllers(): Controller[] {
   const passwordService = new PasswordService();
   const emailService = new EmailService();
   const resetCodeService = new ResetCodeService();
-  const lightsHistoryService = new LightsHistoryService();
   const mqttService = new MqttService();
   const sseService = new SseService();
+  const lightsHistoryService = new LightsHistoryService(sseService);
   const lightsEnergyService = new LightsEnergyService(sseService);
   const lightsScheduleService = new LightsScheduleService();
   const lightsScenesService = new LightsScenesService();

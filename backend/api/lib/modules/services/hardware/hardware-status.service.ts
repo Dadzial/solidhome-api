@@ -22,13 +22,13 @@ export class HardwareStatusService {
   /**
    * @param mqttService Serwis komunikacji MQTT
    * @param sseService Serwis rozgłaszania zdarzeń SSE
-   * @param timeoutMs Czas oczekiwania na kolejny heartbeat (domyślnie 12000 ms)
+   * @param timeoutMs Czas oczekiwania na kolejny heartbeat (domyślnie 6000 ms)
    * @constructor
    */
   constructor(
     private mqttService: MqttService,
     private sseService: SseService,
-    timeoutMs = 12000,
+    timeoutMs = 6000,
   ) {
     this.timeoutMs = timeoutMs;
     this.initializeSubscription();

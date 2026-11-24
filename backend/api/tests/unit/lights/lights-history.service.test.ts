@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import LightsHistoryService from '../../../lib/modules/services/lights/lights-history.service';
 import lightsHistoryModel from '../../../lib/modules/schemas/lights/lights-history.schema';
 import UserModel from '../../../lib/modules/schemas/user/user.schema';
+import SseService from '../../../lib/modules/services/sse/sse.service';
 import { Types } from 'mongoose';
 
 describe('LightsHistoryService', () => {
@@ -93,6 +94,47 @@ describe('LightsHistoryService', () => {
       vi.spyOn(lightsHistoryModel, 'deleteMany').mockRejectedValueOnce(new Error('Reset error'));
 
       await expect(service.resetHistory()).rejects.toThrow('Reset error');
+    });
+  });
+
+  describe('SSE history_updated broadcast', () => {
+    let sseServiceMock: {
+      broadcast: ReturnType<typeof vi.fn>;
+      activeSessionsCount: number;
+    };
+    let sseHistoryService: LightsHistoryService;
+
+    beforeEach(() => {
+      sseServiceMock = {
+        broadcast: vi.fn(),
+        activeSessionsCount: 1,
+      };
+      sseHistoryService = new LightsHistoryService(sseServiceMock as unknown as SseService);
+    });
+
+    it('should broadcast lights:history_updated after addHistoryEntry when sessions exist', async () => {
+      await sseHistoryService.addHistoryEntry('kitchen', 1);
+
+      expect(sseServiceMock.broadcast).toHaveBeenCalledTimes(1);
+      expect(sseServiceMock.broadcast).toHaveBeenCalledWith(
+        'lights',
+        'history_updated',
+        expect.arrayContaining([expect.objectContaining({ name: 'kitchen', state: 1 })]),
+      );
+    });
+
+    it('should skip broadcast after addHistoryEntry when no active SSE sessions exist', async () => {
+      sseServiceMock.activeSessionsCount = 0;
+
+      await sseHistoryService.addHistoryEntry('kitchen', 1);
+
+      expect(sseServiceMock.broadcast).not.toHaveBeenCalled();
+    });
+
+    it('should broadcast empty array on lights:history_updated after resetHistory', async () => {
+      await sseHistoryService.resetHistory();
+
+      expect(sseServiceMock.broadcast).toHaveBeenCalledWith('lights', 'history_updated', []);
     });
   });
 });
