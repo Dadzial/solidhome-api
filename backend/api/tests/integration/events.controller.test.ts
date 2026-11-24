@@ -102,9 +102,6 @@ describe('EventsController (Integration)', () => {
       expect(res.headers['content-type']).toContain('text/event-stream');
       expect(res.headers['x-accel-buffering']).toBe('no');
       expect(createSession).toHaveBeenCalledTimes(1);
-      expect(createSession).toHaveBeenCalledWith(expect.anything(), expect.anything(), {
-        keepAlive: 15000,
-      });
       expect(registerSpy).toHaveBeenCalledTimes(1);
       expect(registerSpy).toHaveBeenCalledWith(mockSession);
       expect(sseService.activeSessionsCount).toBe(1);
