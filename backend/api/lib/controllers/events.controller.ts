@@ -35,15 +35,20 @@ class EventsController implements Controller {
   }
 
   /**
-   * Tworzy nową sesję SSE i rejestruje ją w serwisie SSE.
+   * Tworzy nową sesję SSE, konfiguruje nagłówki anty-buforujące dla reverse proxy
+   * (Render/Nginx/Cloudflare) oraz keep-alive (15s) i rejestruje sesję w serwisie SSE.
+   *
    * @route GET /api/events
    * @access Private (Wymaga tokenu JWT)
    * @param req - Zapytanie Express
-   * @param res - Ewentualna odpowiedź z błędem, jeśli nie uda się utworzyć sesji SSE
-   *
+   * @param res - Odpowiedź Express ze strumieniem zdarzeń lub komunikatem błędu
+   * @returns {Promise<void>}
    */
   private streamEvents = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
+      res.setHeader('X-Accel-Buffering', 'no');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+
       const session = await createSession(req, res);
       this.sseService.registerSession(session);
     } catch (error) {

@@ -26,6 +26,7 @@ describe('SseService', () => {
   });
 
   afterEach(() => {
+    service.stopHeartbeat();
     vi.restoreAllMocks();
     vi.useRealTimers();
   });
@@ -39,14 +40,33 @@ describe('SseService', () => {
 
   describe('registerSession', () => {
     it('should register a session in the channel and log active session count', () => {
-      const mockSession = { id: 'session-123' } as any;
+      const mockSession = { id: 'session-123', on: vi.fn() } as any;
       mockChannel.sessionCount = 1;
 
       service.registerSession(mockSession);
 
       expect(mockChannel.register).toHaveBeenCalledTimes(1);
       expect(mockChannel.register).toHaveBeenCalledWith(mockSession);
-      expect(logger.info).toHaveBeenCalledWith('See session registered. Active sessions: 1');
+      expect(logger.info).toHaveBeenCalledWith('SSE session registered. Active sessions: 1');
+      expect(mockSession.on).toHaveBeenCalledWith('disconnected', expect.any(Function));
+    });
+
+    it('should log when registered session disconnects', () => {
+      let disconnectHandler: (() => void) | undefined;
+      const mockSession = {
+        id: 'session-456',
+        on: vi.fn((event: string, cb: () => void) => {
+          if (event === 'disconnected') disconnectHandler = cb;
+        }),
+      } as any;
+
+      mockChannel.sessionCount = 1;
+      service.registerSession(mockSession);
+
+      mockChannel.sessionCount = 0;
+      disconnectHandler?.();
+
+      expect(logger.info).toHaveBeenCalledWith('SSE session disconnected. Active sessions: 0');
     });
 
     it('should handle registering multiple sessions sequentially', () => {
@@ -147,6 +167,37 @@ describe('SseService', () => {
 
       mockChannel.sessionCount = 12;
       expect(service.activeSessionsCount).toBe(12);
+    });
+  });
+
+  describe('heartbeat', () => {
+    it('should broadcast api:ping periodically when sessions are active', () => {
+      vi.useFakeTimers();
+      const hbService = new SseService(5000);
+      mockChannel.sessionCount = 1;
+
+      vi.advanceTimersByTime(5000);
+
+      expect(mockChannel.broadcast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          domain: 'api',
+          event: 'ping',
+          data: null,
+        }),
+        'api:ping',
+      );
+      hbService.stopHeartbeat();
+    });
+
+    it('should not broadcast api:ping when no sessions are active', () => {
+      vi.useFakeTimers();
+      const hbService = new SseService(5000);
+      mockChannel.sessionCount = 0;
+
+      vi.advanceTimersByTime(5000);
+
+      expect(mockChannel.broadcast).not.toHaveBeenCalled();
+      hbService.stopHeartbeat();
     });
   });
 });

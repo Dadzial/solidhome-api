@@ -34,11 +34,11 @@ function createControllers(): Controller[] {
   const emailService = new EmailService();
   const resetCodeService = new ResetCodeService();
   const lightsHistoryService = new LightsHistoryService();
-  const lightsEnergyService = new LightsEnergyService();
-  const lightsScheduleService = new LightsScheduleService();
-  const lightsScenesService = new LightsScenesService();
   const mqttService = new MqttService();
   const sseService = new SseService();
+  const lightsEnergyService = new LightsEnergyService(sseService);
+  const lightsScheduleService = new LightsScheduleService();
+  const lightsScenesService = new LightsScenesService();
   const hardwareStatusService = new HardwareStatusService(mqttService, sseService);
   const lightsService = new LightsControlService(
     lightsHistoryService,

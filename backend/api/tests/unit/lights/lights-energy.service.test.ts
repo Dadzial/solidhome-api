@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LightsEnergyService from '../../../lib/modules/services/lights/lights-energy.service';
 import LightEnergyModel from '../../../lib/modules/schemas/lights/lights-energy.schema';
 import LightModel from '../../../lib/modules/schemas/lights/lights.schema';
+import SseService from '../../../lib/modules/services/sse/sse.service';
 import { seedDefaultLights } from '../../helpers/lights.helper';
 
 describe('LightsEnergyService', () => {
@@ -111,6 +112,76 @@ describe('LightsEnergyService', () => {
 
       await expect(service.resetEnergyStats()).rejects.toThrow(
         'Error resetting lights energy stats',
+      );
+    });
+  });
+
+  describe('SSE energy_updated broadcast', () => {
+    let sseServiceMock: {
+      broadcast: ReturnType<typeof vi.fn>;
+      activeSessionsCount: number;
+    };
+    let sseEnergyService: LightsEnergyService;
+
+    beforeEach(() => {
+      sseServiceMock = {
+        broadcast: vi.fn(),
+        activeSessionsCount: 1,
+      };
+      sseEnergyService = new LightsEnergyService(sseServiceMock as unknown as SseService, 15000);
+    });
+
+    afterEach(() => {
+      sseEnergyService.stopPeriodicBroadcast();
+      vi.useRealTimers();
+    });
+
+    it('should broadcast energy_updated when active SSE sessions exist', async () => {
+      await sseEnergyService.broadcastCurrentEnergy();
+
+      expect(sseServiceMock.broadcast).toHaveBeenCalledTimes(1);
+      expect(sseServiceMock.broadcast).toHaveBeenCalledWith(
+        'lights',
+        'energy_updated',
+        expect.objectContaining({
+          name: 'entireHouse',
+          timeframe: 'today',
+          topRooms: expect.any(Array),
+        }),
+      );
+    });
+
+    it('should skip broadcast when there are no active SSE sessions', async () => {
+      sseServiceMock.activeSessionsCount = 0;
+
+      await sseEnergyService.broadcastCurrentEnergy();
+
+      expect(sseServiceMock.broadcast).not.toHaveBeenCalled();
+    });
+
+    it('should broadcast energy_updated after accumulateEnergyOnStateChange', async () => {
+      await sseEnergyService.accumulateEnergyOnStateChange('living_room', 1);
+
+      expect(sseServiceMock.broadcast).toHaveBeenCalledWith(
+        'lights',
+        'energy_updated',
+        expect.objectContaining({
+          name: 'entireHouse',
+          timeframe: 'today',
+        }),
+      );
+    });
+
+    it('should broadcast energy_updated after resetEnergyStats', async () => {
+      await sseEnergyService.resetEnergyStats();
+
+      expect(sseServiceMock.broadcast).toHaveBeenCalledWith(
+        'lights',
+        'energy_updated',
+        expect.objectContaining({
+          name: 'entireHouse',
+          timeframe: 'today',
+        }),
       );
     });
   });

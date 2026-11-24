@@ -3,6 +3,7 @@ import LightModel from '../../schemas/lights/lights.schema';
 import { ILightEnergy, EnergyTimeframe } from '../../models/lights/lights-energy.model';
 import { ITopRoomEnergy } from '../../models/lights/lights-energy-top.model';
 import { DEFAULT_LIGHTS } from './lights-control.service';
+import SseService from '../sse/sse.service';
 import logger from '../../../utils/logger';
 
 /**
@@ -55,9 +56,74 @@ class LightsEnergyService {
   /** Czas włączenia dla każdego aktualnie świecącego światła */
   private turnedOnTimestamps: Record<string, Date | null> = {};
 
-  constructor() {
+  /** Uchwyt cyklicznego interwału rozgłaszania statystyk energii przez SSE */
+  private broadcastInterval: NodeJS.Timeout | null = null;
+
+  /**
+   * @constructor
+   * @param sseService - Opcjonalny serwis odpowiedzialny za obsługę Server-Sent Events.
+   * @param broadcastIntervalMs - Interwał cyklicznego rozgłaszania statystyk energii w ms (domyślnie 15000 ms).
+   */
+  constructor(
+    private sseService?: SseService,
+    broadcastIntervalMs = 15000,
+  ) {
     for (const room of DEFAULT_LIGHTS) {
       this.turnedOnTimestamps[room] = null;
+    }
+    this.startPeriodicBroadcast(broadcastIntervalMs);
+  }
+
+  /**
+   * Uruchamia cykliczny broadcast statystyk energii przez SSE.
+   * Wysyła aktualizację tylko wtedy, gdy co najmniej jeden klient SSE jest połączony.
+   *
+   * @private
+   * @param intervalMs - Czas pomiędzy kolejnymi rozgłoszeniami w milisekundach.
+   * @returns {void}
+   */
+  private startPeriodicBroadcast(intervalMs: number): void {
+    if (!this.sseService) {
+      return;
+    }
+
+    this.broadcastInterval = setInterval(() => {
+      void this.broadcastCurrentEnergy();
+    }, intervalMs);
+
+    if (this.broadcastInterval?.unref) {
+      this.broadcastInterval.unref();
+    }
+  }
+
+  /**
+   * Zatrzymuje cykliczny interwał rozgłaszania statystyk energii przez SSE.
+   *
+   * @returns {void}
+   */
+  public stopPeriodicBroadcast(): void {
+    if (this.broadcastInterval) {
+      clearInterval(this.broadcastInterval);
+      this.broadcastInterval = null;
+    }
+  }
+
+  /**
+   * Pobiera bieżące dzienne statystyki zużycia energii dla całego domu i rozgłasza je przez SSE,
+   * jeśli istnieje co najmniej jedna aktywna sesja SSE.
+   *
+   * @returns {Promise<void>}
+   */
+  public async broadcastCurrentEnergy(): Promise<void> {
+    if (!this.sseService || this.sseService.activeSessionsCount === 0) {
+      return;
+    }
+
+    try {
+      const stats = await this.getEnergyStats('today', 'entireHouse');
+      this.sseService.broadcast('lights', 'energy_updated', stats);
+    } catch (error) {
+      logger.error('Error broadcasting energy stats via SSE:', error);
     }
   }
 
@@ -307,6 +373,8 @@ class LightsEnergyService {
 
         logger.info(`"${name}" OFF -> active power ${activePowerKw} kW saved (point drops to 0)`);
       }
+
+      await this.broadcastCurrentEnergy();
     } catch (error) {
       logger.error(`Error accumulating energy for ${name}:`, error);
     }
@@ -536,6 +604,7 @@ class LightsEnergyService {
         this.turnedOnTimestamps[room] = null;
       }
       logger.info('Successfully reset lights energy stats.');
+      await this.broadcastCurrentEnergy();
       return { acknowledged: result.acknowledged, deletedCount: result.deletedCount };
     } catch (error) {
       logger.error('Error resetting lights energy stats:', error);
