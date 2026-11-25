@@ -6,7 +6,7 @@ import logger from '../../../utils/logger';
  * @class HardwareStatusService
  * @description Serwis monitorujący status obecności fizycznej płytki mikrokontrolera (NXP) w sieci domowej...
  */
-export class HardwareStatusService {
+class HardwareStatusService {
   /** Flaga określająca bieżący stan połączenia z fizyczną płytką */
   private isOnline = false;
 

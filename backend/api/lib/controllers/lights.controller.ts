@@ -112,7 +112,7 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express (query: timeframe, room lub name)
    * @param res - Odpowiedź z obiektem statystyk ILightEnergy
    */
-  private getLightEnergyStats = async (req: Request, res: Response): Promise<Response> => {
+  private getLightEnergyStats = async (req: Request, res: Response): Promise<void> => {
     const schema = Joi.object({
       timeframe: Joi.string().valid('today', 'week', 'month').default('today'),
       room: Joi.string().default('entireHouse'),
@@ -125,7 +125,8 @@ class LightsController implements Controller {
       logger.warn(
         `[LightsController] Validation error on GET /api/lights/energy: ${error.details[0].message}`,
       );
-      return res.status(400).json({ message: error.details[0].message });
+      res.status(400).json({ message: error.details[0].message });
+      return;
     }
 
     try {
@@ -135,12 +136,10 @@ class LightsController implements Controller {
       logger.info(
         `[LightsController] GET /api/lights/energy (${timeframe}, ${roomName}) -> totalKwh: ${stats.totalKwh}`,
       );
-      return res.status(200).json(stats);
+      res.status(200).json(stats);
     } catch (error) {
       logger.error('Error fetching lights energy stats', error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -185,7 +184,7 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express z ciałem { name, days, startTime, endTime, rooms }
    * @param res - Odpowiedź ze statusem 201 i utworzoną regułą
    */
-  private createScheduleRule = async (req: AuthRequest, res: Response): Promise<Response> => {
+  private createScheduleRule = async (req: AuthRequest, res: Response): Promise<void> => {
     const schema = Joi.object({
       name: Joi.string().trim().min(1).max(100).required(),
       days: Joi.array().items(Joi.number().min(0).max(6)).min(1).required(),
@@ -197,7 +196,8 @@ class LightsController implements Controller {
     const { error, value } = schema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      res.status(400).json({ message: error.details[0].message });
+      return;
     }
 
     try {
@@ -206,12 +206,10 @@ class LightsController implements Controller {
         ...value,
         userId,
       });
-      return res.status(201).json(rule);
+      res.status(201).json(rule);
     } catch (error) {
       logger.error('Error creating schedule rule', error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -222,7 +220,7 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express zawierające { name: string, state: 0 | 1 }
    * @param res - Odpowiedź z zaktualizowanym obiektem światła
    */
-  private updateLightStatus = async (req: AuthRequest, res: Response): Promise<Response> => {
+  private updateLightStatus = async (req: AuthRequest, res: Response): Promise<void> => {
     const schema = Joi.object({
       name: Joi.string().required(),
       state: Joi.number().valid(0, 1).required(),
@@ -231,7 +229,8 @@ class LightsController implements Controller {
     const { error, value } = schema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      res.status(400).json({ message: error.details[0].message });
+      return;
     }
 
     const { name, state } = value;
@@ -239,18 +238,15 @@ class LightsController implements Controller {
     try {
       const userId = req.user?.userId ? new Types.ObjectId(req.user.userId) : undefined;
       const updatedLight = await this.lightsService.updateLightState(name, state, userId);
-      return res.status(200).json(updatedLight);
+      res.status(200).json(updatedLight);
     } catch (error) {
       if (error instanceof Error && error.message === 'hardware_offline') {
         logger.warn(`Rejected light update for "${name}": hardware board is offline`);
-        return res
-          .status(503)
-          .json({ message: 'Sterownik oświetlenia jest odłączony od zasilania' });
+        res.status(503).json({ message: 'Sterownik oświetlenia jest odłączony od zasilania' });
+        return;
       }
       logger.error(`Error updating light state for "${name}"`, error);
-      return res
-        .status(400)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(400).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -261,7 +257,7 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express z ciałem { name, icon, rooms }
    * @param res - Odpowiedź ze statusem 201 i utworzoną sceną
    */
-  private createLightScene = async (req: AuthRequest, res: Response): Promise<Response> => {
+  private createLightScene = async (req: AuthRequest, res: Response): Promise<void> => {
     const schema = Joi.object({
       name: Joi.string().trim().min(1).max(100).required(),
       icon: Joi.string().trim().min(1).required(),
@@ -271,7 +267,8 @@ class LightsController implements Controller {
     const { error, value } = schema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      res.status(400).json({ message: error.details[0].message });
+      return;
     }
 
     try {
@@ -280,12 +277,10 @@ class LightsController implements Controller {
         ...value,
         userId,
       });
-      return res.status(201).json(scene);
+      res.status(201).json(scene);
     } catch (error) {
       logger.error('Error creating light scene', error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -296,11 +291,12 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express z parametrem :id i opcjonalnym ciałem { active?: boolean }
    * @param res - Odpowiedź ze zaktualizowaną regułą
    */
-  private updateRuleActiveStatus = async (req: AuthRequest, res: Response): Promise<Response> => {
+  private updateRuleActiveStatus = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
 
     if (!Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid rule ID format' });
+      res.status(400).json({ message: 'Invalid rule ID format' });
+      return;
     }
 
     const schema = Joi.object({
@@ -310,20 +306,20 @@ class LightsController implements Controller {
     const { error, value } = schema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      res.status(400).json({ message: error.details[0].message });
+      return;
     }
 
     try {
       const updatedRule = await this.lightsScheduleService.toggleRule(id, value.active);
       if (!updatedRule) {
-        return res.status(404).json({ message: 'Schedule rule not found' });
+        res.status(404).json({ message: 'Schedule rule not found' });
+        return;
       }
-      return res.status(200).json(updatedRule);
+      res.status(200).json(updatedRule);
     } catch (error) {
       logger.error(`Error updating rule active status for ${id}`, error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -334,11 +330,12 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express z parametrem :id i opcjonalnym ciałem { active?: boolean }
    * @param res - Odpowiedź ze zaktualizowaną sceną
    */
-  private updateSceneActiveStatus = async (req: AuthRequest, res: Response): Promise<Response> => {
+  private updateSceneActiveStatus = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
 
     if (!Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid scene ID format' });
+      res.status(400).json({ message: 'Invalid scene ID format' });
+      return;
     }
 
     const schema = Joi.object({
@@ -348,22 +345,22 @@ class LightsController implements Controller {
     const { error, value } = schema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      res.status(400).json({ message: error.details[0].message });
+      return;
     }
 
     try {
       const updatedScene = await this.lightsScenesService.toggleScene(id, value.active);
 
       if (!updatedScene) {
-        return res.status(404).json({ message: 'Light scene not found' });
+        res.status(404).json({ message: 'Light scene not found' });
+        return;
       }
 
-      return res.status(200).json(updatedScene);
+      res.status(200).json(updatedScene);
     } catch (error) {
       logger.error(`Error updating scene active status ${id}`, error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -374,17 +371,15 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express
    * @param res - Odpowiedź z potwierdzeniem wyczyszczenia statystyk
    */
-  private deleteLightEnergyStats = async (req: Request, res: Response): Promise<Response> => {
+  private deleteLightEnergyStats = async (req: Request, res: Response): Promise<void> => {
     try {
       const result = await this.lightsEnergyService.resetEnergyStats();
-      return res
+      res
         .status(200)
         .json({ message: 'Energy stats reset successfully', deletedCount: result.deletedCount });
     } catch (error) {
       logger.error('Error resetting lights energy stats', error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -395,17 +390,15 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express
    * @param res - Odpowiedź z potwierdzeniem wyczyszczenia historii
    */
-  private deleteLightHistory = async (req: Request, res: Response): Promise<Response> => {
+  private deleteLightHistory = async (req: Request, res: Response): Promise<void> => {
     try {
       const result = await this.lightsHistoryService.resetHistory();
-      return res
+      res
         .status(200)
         .json({ message: 'History reset successfully', deletedCount: result.deletedCount });
     } catch (error) {
       logger.error('Error resetting lights history', error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -416,24 +409,24 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express z parametrem :id
    * @param res - Odpowiedź z potwierdzeniem usunięcia reguły
    */
-  private deleteScheduleRule = async (req: AuthRequest, res: Response): Promise<Response> => {
+  private deleteScheduleRule = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
 
     if (!Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid rule ID format' });
+      res.status(400).json({ message: 'Invalid rule ID format' });
+      return;
     }
 
     try {
       const success = await this.lightsScheduleService.deleteRule(id);
       if (!success) {
-        return res.status(404).json({ message: 'Schedule rule not found' });
+        res.status(404).json({ message: 'Schedule rule not found' });
+        return;
       }
-      return res.status(200).json({ message: 'Schedule rule deleted successfully' });
+      res.status(200).json({ message: 'Schedule rule deleted successfully' });
     } catch (error) {
       logger.error(`Error deleting schedule rule ${id}`, error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
@@ -444,24 +437,24 @@ class LightsController implements Controller {
    * @param req - Zapytanie Express z parametrem :id
    * @param res - Odpowiedź z potwierdzeniem usunięcia sceny
    */
-  private deleteLightScene = async (req: AuthRequest, res: Response): Promise<Response> => {
+  private deleteLightScene = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
 
     if (!Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid scene ID format' });
+      res.status(400).json({ message: 'Invalid scene ID format' });
+      return;
     }
 
     try {
       const success = await this.lightsScenesService.deleteScene(id);
       if (!success) {
-        return res.status(404).json({ message: 'Light scene not found' });
+        res.status(404).json({ message: 'Light scene not found' });
+        return;
       }
-      return res.status(200).json({ message: 'Light scene deleted successfully' });
+      res.status(200).json({ message: 'Light scene deleted successfully' });
     } catch (error) {
       logger.error(`Error deleting light scene ${id}`, error);
-      return res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 }
