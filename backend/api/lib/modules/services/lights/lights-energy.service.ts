@@ -19,7 +19,16 @@ const LIGHT_WATTS: Record<string, number> = {
   boiler_room: 15,
 };
 
+/**
+ * Maksymalna liczba punktów minutowych w widoku czasu rzeczywistego (ostatnie 20 minut).
+ */
 const MAX_LIVE_POINTS = 20;
+
+/** Etykiety dni tygodnia. */
+const ALL_WEEKDAYS = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
+
+/** Etykiety tygodni miesiąca. */
+const ALL_MONTH_WEEKS = ['Tydz 1', 'Tydz 2', 'Tydz 3', 'Tydz 4'];
 
 /**
  * Zwraca datę w formacie YYYY-MM-DD w lokalnej strefie czasowej.
@@ -490,7 +499,6 @@ class LightsEnergyService {
             : new Array(categories.length).fill(0);
         }
       } else if (timeframe === 'week') {
-        const ALL_WEEKDAYS = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
         const currentDayIndex = (now.getDay() + 6) % 7;
         categories = ALL_WEEKDAYS.slice(0, currentDayIndex + 1);
         chartData = new Array(categories.length).fill(0);
@@ -522,7 +530,6 @@ class LightsEnergyService {
             ? todayTotalHouseKwh
             : Number((todayLightsKwh[roomName] || 0).toFixed(2));
       } else {
-        const ALL_MONTH_WEEKS = ['Tydz 1', 'Tydz 2', 'Tydz 3', 'Tydz 4'];
         const currentWeekIndex = Math.min(Math.floor((now.getDate() - 1) / 7), 3);
         categories = ALL_MONTH_WEEKS.slice(0, currentWeekIndex + 1);
         chartData = new Array(categories.length).fill(0);

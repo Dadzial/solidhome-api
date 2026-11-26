@@ -65,25 +65,46 @@ describe('AirController (Integration)', () => {
   });
 
   describe('GET /api/air/history', () => {
-    it('should return 200 OK with air history', async () => {
-      const sampleHistory = [
-        { temperature: 21, humidity: 45, pressure: 1000 },
-        { temperature: 22, humidity: 46, pressure: 1002 },
-      ];
+    it('should return 200 OK with aggregated air history for given timeframe', async () => {
+      const sampleHistory = {
+        timeframe: 'week',
+        categories: ['Pn', 'Wt'],
+        temperature: [21, 22],
+        humidity: [45, 46],
+        pressure: [1000, 1002],
+      };
       (mockAirService.getAirHistory as any).mockResolvedValueOnce(sampleHistory);
 
       const response = await request(app)
-        .get('/api/air/history?limit=10')
+        .get('/api/air/history?timeframe=week')
         .set('Authorization', `Bearer ${testUserCtx.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.length).toBe(2);
-      expect(mockAirService.getAirHistory).toHaveBeenCalledWith(10);
+      expect(response.body).toEqual(sampleHistory);
+      expect(mockAirService.getAirHistory).toHaveBeenCalledWith('week');
     });
 
-    it('should return 400 Bad Request for invalid limit parameter', async () => {
+    it('should default timeframe to today when omitted', async () => {
+      const sampleHistory = {
+        timeframe: 'today',
+        categories: ['18:00'],
+        temperature: [22],
+        humidity: [50],
+        pressure: [1013],
+      };
+      (mockAirService.getAirHistory as any).mockResolvedValueOnce(sampleHistory);
+
       const response = await request(app)
-        .get('/api/air/history?limit=-5')
+        .get('/api/air/history')
+        .set('Authorization', `Bearer ${testUserCtx.token}`);
+
+      expect(response.status).toBe(200);
+      expect(mockAirService.getAirHistory).toHaveBeenCalledWith('today');
+    });
+
+    it('should return 400 Bad Request for invalid timeframe parameter', async () => {
+      const response = await request(app)
+        .get('/api/air/history?timeframe=year')
         .set('Authorization', `Bearer ${testUserCtx.token}`);
 
       expect(response.status).toBe(400);

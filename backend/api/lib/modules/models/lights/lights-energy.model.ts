@@ -1,6 +1,9 @@
 import { Types } from 'mongoose';
 import { ITopRoomEnergy } from './lights-energy-top.model';
 
+/**
+ * Dostępne przedziały czasowe dla zagregowanej historii zużycia energii oświetlenia.
+ */
 export type EnergyTimeframe = 'today' | 'week' | 'month';
 
 /**

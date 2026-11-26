@@ -59,15 +59,15 @@ class AirController implements Controller {
   };
 
   /**
-   * Pobiera zarejestrowaną historię pomiarów powietrza posortowaną chronologicznie.
+   * Pobiera zagregowaną historię pomiarów powietrza dla wybranego przedziału czasu ('today', 'week', 'month').
    * @route GET /api/air/history
    * @access Private (wymaga tokenu JWT)
-   * @param req - Zapytanie Express (opcjonalny query param ?limit=)
-   * @param res - Odpowiedź z listą punktów pomiarowych
+   * @param req - Zapytanie Express (opcjonalny query param ?timeframe=today|week|month)
+   * @param res - Odpowiedź ze statystykami IAirHistoryResponse
    */
   private getAirHistory = async (req: Request, res: Response): Promise<void> => {
     const schema = Joi.object({
-      limit: Joi.number().integer().min(1).max(1000).default(50),
+      timeframe: Joi.string().valid('today', 'week', 'month').default('today'),
     });
 
     const { error, value } = schema.validate(req.query);
@@ -78,7 +78,7 @@ class AirController implements Controller {
     }
 
     try {
-      const history = await this.airService.getAirHistory(value.limit);
+      const history = await this.airService.getAirHistory(value.timeframe);
       res.status(200).json(history);
     } catch (error) {
       logger.error('Error fetching air history', error);

@@ -102,36 +102,92 @@ describe('AirService', () => {
   });
 
   describe('getAirHistory', () => {
-    it('should return history records sorted chronologically (oldest to newest)', async () => {
-      await AirModel.create({ temperature: 18.0, humidity: 55.0, pressure: 990.0 });
-      await new Promise((r) => setTimeout(r, 10));
-      await AirModel.create({ temperature: 19.0, humidity: 54.0, pressure: 995.0 });
-      await new Promise((r) => setTimeout(r, 10));
-      await AirModel.create({ temperature: 20.0, humidity: 53.0, pressure: 1000.0 });
+    it('should aggregate today measurements by minute HH:mm chronologically', async () => {
+      const now = new Date(2026, 10, 26, 18, 5, 30);
+      await AirModel.create({
+        temperature: 20.0,
+        humidity: 50.0,
+        pressure: 1000.0,
+        createdAt: new Date(2026, 10, 26, 18, 1, 10),
+      });
+      await AirModel.create({
+        temperature: 22.0,
+        humidity: 52.0,
+        pressure: 1002.0,
+        createdAt: new Date(2026, 10, 26, 18, 1, 45),
+      });
+      await AirModel.create({
+        temperature: 23.5,
+        humidity: 48.0,
+        pressure: 1005.0,
+        createdAt: new Date(2026, 10, 26, 18, 3, 15),
+      });
 
-      const history = await service.getAirHistory(10);
-      expect(history.length).toBe(3);
-      expect(history[0].temperature).toBe(18.0);
-      expect(history[1].temperature).toBe(19.0);
-      expect(history[2].temperature).toBe(20.0);
+      const history = await service.getAirHistory('today', now);
+      expect(history.timeframe).toBe('today');
+      expect(history.categories).toEqual(['18:01', '18:03']);
+      expect(history.temperature).toEqual([21.0, 23.5]);
+      expect(history.humidity).toEqual([51.0, 48.0]);
+      expect(history.pressure).toEqual([1001.0, 1005.0]);
     });
 
-    it('should respect the limit parameter', async () => {
-      for (let i = 1; i <= 5; i++) {
-        await AirModel.create({ temperature: 20 + i, humidity: 50, pressure: 1000 });
-        await new Promise((r) => setTimeout(r, 5));
-      }
+    it('should aggregate week measurements into weekday buckets up to today', async () => {
+      // Czwartek 2026-11-26 -> Pn, Wt, Śr, Cz
+      const now = new Date(2026, 10, 26, 18, 0, 0);
+      await AirModel.create({
+        temperature: 20.0,
+        humidity: 40.0,
+        pressure: 1010.0,
+        createdAt: new Date(2026, 10, 23, 12, 0, 0), // Pn
+      });
+      await AirModel.create({
+        temperature: 24.0,
+        humidity: 50.0,
+        pressure: 1014.0,
+        createdAt: new Date(2026, 10, 26, 10, 0, 0), // Cz
+      });
 
-      const history = await service.getAirHistory(3);
-      expect(history.length).toBe(3);
-      expect(history[0].temperature).toBe(23);
-      expect(history[1].temperature).toBe(24);
-      expect(history[2].temperature).toBe(25);
+      const history = await service.getAirHistory('week', now);
+      expect(history.timeframe).toBe('week');
+      expect(history.categories).toEqual(['Pn', 'Wt', 'Śr', 'Cz']);
+      expect(history.temperature).toEqual([20.0, null, null, 24.0]);
+      expect(history.humidity).toEqual([40.0, null, null, 50.0]);
+      expect(history.pressure).toEqual([1010.0, null, null, 1014.0]);
+    });
+
+    it('should aggregate month measurements into week buckets up to current week', async () => {
+      // 26 dzień miesiąca -> Tydz 1..Tydz 4
+      const now = new Date(2026, 10, 26, 18, 0, 0);
+      await AirModel.create({
+        temperature: 19.0,
+        humidity: 45.0,
+        pressure: 1008.0,
+        createdAt: new Date(2026, 10, 3, 12, 0, 0), // Tydz 1
+      });
+      await AirModel.create({
+        temperature: 21.0,
+        humidity: 49.0,
+        pressure: 1012.0,
+        createdAt: new Date(2026, 10, 5, 12, 0, 0), // Tydz 1
+      });
+      await AirModel.create({
+        temperature: 23.0,
+        humidity: 55.0,
+        pressure: 1016.0,
+        createdAt: new Date(2026, 10, 25, 12, 0, 0), // Tydz 4
+      });
+
+      const history = await service.getAirHistory('month', now);
+      expect(history.timeframe).toBe('month');
+      expect(history.categories).toEqual(['Tydz 1', 'Tydz 2', 'Tydz 3', 'Tydz 4']);
+      expect(history.temperature).toEqual([20.0, null, null, 23.0]);
+      expect(history.humidity).toEqual([47.0, null, null, 55.0]);
+      expect(history.pressure).toEqual([1010.0, null, null, 1016.0]);
     });
   });
 
   describe('clearHistory', () => {
-    it('should delete all air records from database', async () => {
+    it('should delete all air records from database and broadcast history_cleared via SSE', async () => {
       await AirModel.create({ temperature: 22, humidity: 50, pressure: 1000 });
       await AirModel.create({ temperature: 23, humidity: 52, pressure: 1002 });
 
@@ -140,6 +196,9 @@ describe('AirService', () => {
 
       const count = await AirModel.countDocuments();
       expect(count).toBe(0);
+      expect(mockSseService.broadcast).toHaveBeenCalledWith('air', 'history_cleared', {
+        deletedCount: 2,
+      });
     });
   });
 });
