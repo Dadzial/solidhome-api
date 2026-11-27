@@ -3,6 +3,7 @@ import HealthController from './controllers/health.controller';
 import UserController from './controllers/user.controller';
 import LightsController from './controllers/lights.controller';
 import AirController from './controllers/air.controller';
+import WeatherController from './controllers/weather.controller';
 import EventController from './controllers/events.controller';
 import DocController from './controllers/doc.controller';
 import HardwareController from './controllers/hardware.controller';
@@ -21,6 +22,7 @@ import MqttService from './modules/services/mqtt/mqtt.service';
 import SseService from './modules/services/sse/sse.service';
 import HardwareStatusService from './modules/services/hardware/hardware-status.service';
 import AirService from './modules/services/air/air.service';
+import WeatherService from './modules/services/air/weather.service';
 
 /**
  * Fabryka inicjalizująca instancje serwisów oraz wstrzykująca je jako zależności do kontrolerów.
@@ -48,6 +50,7 @@ function createControllers(): Controller[] {
     hardwareStatusService,
   );
   const airService = new AirService(mqttService, sseService);
+  const weatherService = new WeatherService();
 
   return [
     new LightsController(
@@ -62,6 +65,7 @@ function createControllers(): Controller[] {
     new DocController(),
     new HardwareController(hardwareStatusService),
     new AirController(airService),
+    new WeatherController(weatherService),
     new UserController(userService, tokenService, passwordService, emailService, resetCodeService),
   ];
 }

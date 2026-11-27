@@ -19,6 +19,7 @@ dotenv.config();
  * @property {string} mqttUsername - Nazwa użytkownika do uwierzytelnienia na brokerze MQTT (opcjonalne).
  * @property {string} mqttPassword - Hasło dostępu do brokera MQTT (opcjonalne).
  * @property {string} openWeatherMapApiKey - Klucz API do korzystania z serwisu OpenWeatherMap, umożliwiający pobieranie danych pogodowych.
+ * @property {string} defaultCity - Domyślne miasto używane do pobierania danych pogodowych z OpenWeatherMap.
  */
 export const config = {
   port: process.env.PORT,
@@ -35,4 +36,5 @@ export const config = {
   mqttUsername: process.env.MQTT_USERNAME,
   mqttPassword: process.env.MQTT_PASSWORD,
   openWeatherMapApiKey: process.env.OPENWEATHERMAP_API_KEY,
+  defaultCity: process.env.DEFAULT_CITY,
 };
