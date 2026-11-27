@@ -1,5 +1,11 @@
 import { createLogger, format, transports } from 'winston';
 
+/** Maksymalny rozmiar pojedynczego pliku logów (~150 KB ≈ ~1000 linii JSON). */
+const MAX_LOG_FILE_SIZE = 150 * 1024;
+
+/** Maksymalna liczba przechowywanych plików logów (1 aktywny + 1 archiwalny). */
+const MAX_LOG_FILES = 2;
+
 /**
  * Flaga określająca, czy aplikacja działa w trybie produkcyjnym.
  */
@@ -43,11 +49,17 @@ const logger = createLogger({
       filename: 'logs/error.log',
       level: 'error',
       format: fileFormat,
+      maxsize: MAX_LOG_FILE_SIZE,
+      maxFiles: MAX_LOG_FILES,
+      tailable: true,
     }),
 
     new transports.File({
       filename: 'logs/combined.log',
       format: fileFormat,
+      maxsize: MAX_LOG_FILE_SIZE,
+      maxFiles: MAX_LOG_FILES,
+      tailable: true,
     }),
   ],
 });
