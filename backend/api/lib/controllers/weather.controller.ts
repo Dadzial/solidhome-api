@@ -30,8 +30,6 @@ class WeatherController implements Controller {
      */
     private initializeRoutes(): void {
         this.router.get(`${this.path}/current`, auth, this.getWeatherData);
-        this.router.post(`${this.path}/save`, auth,  this.saveWeatherData);
-        this.router.delete(`${this.path}/delete`, auth, this.deleteWeatherData);
     }
 
     /**
@@ -43,28 +41,6 @@ class WeatherController implements Controller {
      * @returns {void}
      */
     private getWeatherData = async (req: Request, res: Response): Promise<void> => {
-    }
-
-    /**
-     * Zapisuje dane pogody.
-     * @route POST /api/weather/save
-     * @access Private
-     * @param req - Obiekt żądania HTTP.
-     * @param res - Obiekt odpowiedzi HTTP.
-     * @returns {void}
-     */
-    private saveWeatherData = async (req: Request, res: Response): Promise<void> => {
-    }
-
-    /**
-     * Usuwa dane pogody.
-     * @route DELETE /api/weather/delete
-     * @access Private
-     * @param req - Obiekt żądania HTTP.
-     * @param res - Obiekt odpowiedzi HTTP.
-     * @returns {void}
-     */
-    private deleteWeatherData = async (req: Request, res: Response): Promise<void> => {
 
     }
 }
