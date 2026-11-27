@@ -37,6 +37,14 @@ export const swaggerDocument = {
       name: 'System (Sprzęt IoT)',
       description: 'Status połączenia z fizyczną płytką mikrokontrolera NXP',
     },
+    {
+      name: 'Powietrze (Air)',
+      description: 'Bieżące odczyty i historia pomiarów z czujnika jakości powietrza',
+    },
+    {
+      name: 'Pogoda (Weather)',
+      description: 'Aktualna pogoda oraz 5-dniowa prognoza z OpenWeatherMap API',
+    },
   ],
   components: {
     securitySchemes: {
@@ -618,6 +626,217 @@ export const swaggerDocument = {
           200: { description: 'Scena usunięta pomyślnie' },
           400: { description: 'Nieprawidłowy format ID' },
           404: { description: 'Scena nie znaleziona' },
+        },
+      },
+    },
+
+    '/api/air/current': {
+      get: {
+        tags: ['Powietrze (Air)'],
+        summary: 'Pobiera najnowszy odczyt parametrów powietrza z czujnika',
+        responses: {
+          200: {
+            description: 'Bieżące parametry powietrza (lub null przy braku pomiarów)',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    _id: { type: 'string', example: '6af9d1accdb04ad922bb2ba9' },
+                    temperature: { type: 'number', example: 22.4 },
+                    humidity: { type: 'number', example: 48.5 },
+                    pressure: { type: 'number', example: 1013.2 },
+                    createdAt: {
+                      type: 'string',
+                      format: 'date-time',
+                      example: '2026-11-27T21:30:00.000Z',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { description: 'Brak autoryzacji' },
+          503: { description: 'Płytka sterownika jest offline' },
+          500: { description: 'Błąd serwera' },
+        },
+      },
+    },
+
+    '/api/air/history': {
+      get: {
+        tags: ['Powietrze (Air)'],
+        summary: 'Pobiera zagregowaną historię pomiarów powietrza do wykresów',
+        parameters: [
+          {
+            name: 'timeframe',
+            in: 'query',
+            description: 'Przedział czasowy agregacji danych',
+            required: false,
+            schema: { type: 'string', enum: ['today', 'week', 'month'], default: 'today' },
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Zagregowane serie danych (temperatura, wilgotność, ciśnienie)',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    timeframe: {
+                      type: 'string',
+                      enum: ['today', 'week', 'month'],
+                      example: 'today',
+                    },
+                    categories: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      example: ['18:00', '18:01', '18:02'],
+                    },
+                    temperature: {
+                      type: 'array',
+                      items: { type: 'number', nullable: true },
+                      example: [22.1, 22.3, 22.4],
+                    },
+                    humidity: {
+                      type: 'array',
+                      items: { type: 'number', nullable: true },
+                      example: [48.0, 48.2, 48.5],
+                    },
+                    pressure: {
+                      type: 'array',
+                      items: { type: 'number', nullable: true },
+                      example: [1013.0, 1013.1, 1013.2],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: 'Nieprawidłowy parametr timeframe' },
+          401: { description: 'Brak autoryzacji' },
+          500: { description: 'Błąd serwera' },
+        },
+      },
+    },
+
+    '/api/air/history/clear': {
+      delete: {
+        tags: ['Powietrze (Air)'],
+        summary:
+          'Usuwa całą zapisaną historię pomiarów powietrza i wysyła zdarzenie SSE air:history_cleared',
+        responses: {
+          200: {
+            description: 'Historia pomiarów powietrza wyczyszczona pomyślnie',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: { type: 'string', example: 'History cleared successfully' },
+                    deletedCount: { type: 'integer', example: 42 },
+                  },
+                },
+              },
+            },
+          },
+          401: { description: 'Brak autoryzacji' },
+          500: { description: 'Błąd serwera' },
+        },
+      },
+    },
+
+    '/api/weather/current': {
+      get: {
+        tags: ['Pogoda (Weather)'],
+        summary: 'Pobiera aktualną pogodę dla skonfigurowanego miasta (z cache 10 min)',
+        responses: {
+          200: {
+            description: 'Aktualne dane pogodowe z OpenWeatherMap',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    city: { type: 'string', example: 'Warszawa' },
+                    country: { type: 'string', example: 'PL' },
+                    temperature: { type: 'number', example: 14.3 },
+                    feelsLike: { type: 'number', example: 12.8 },
+                    tempMin: { type: 'number', example: 11.1 },
+                    tempMax: { type: 'number', example: 16.6 },
+                    humidity: { type: 'number', example: 62 },
+                    pressure: { type: 'number', example: 1016 },
+                    windSpeed: { type: 'number', example: 14.4 },
+                    windDeg: { type: 'number', example: 210 },
+                    clouds: { type: 'number', example: 40 },
+                    visibility: { type: 'number', example: 10000 },
+                    condition: { type: 'string', example: 'Clouds' },
+                    description: { type: 'string', example: 'zachmurzenie umiarkowane' },
+                    icon: { type: 'string', example: '03d' },
+                    sunrise: { type: 'integer', example: 1700000000 },
+                    sunset: { type: 'integer', example: 1700030000 },
+                    updatedAt: {
+                      type: 'string',
+                      format: 'date-time',
+                      example: '2026-11-27T12:00:00.000Z',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { description: 'Brak autoryzacji' },
+          500: { description: 'Błąd pobierania danych pogodowych' },
+        },
+      },
+    },
+
+    '/api/weather/forecast': {
+      get: {
+        tags: ['Pogoda (Weather)'],
+        summary: 'Pobiera 5-dniową prognozę pogody co 3 godziny (z cache 30 min)',
+        responses: {
+          200: {
+            description: 'Prognoza pogody z OpenWeatherMap',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    city: { type: 'string', example: 'Warszawa' },
+                    country: { type: 'string', example: 'PL' },
+                    items: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          timestamp: { type: 'integer', example: 1700010800 },
+                          dateTime: { type: 'string', example: '2026-11-27 15:00:00' },
+                          temperature: { type: 'number', example: 15.4 },
+                          feelsLike: { type: 'number', example: 14.1 },
+                          humidity: { type: 'number', example: 58 },
+                          pressure: { type: 'number', example: 1015 },
+                          windSpeed: { type: 'number', example: 12.6 },
+                          pop: { type: 'integer', example: 35 },
+                          condition: { type: 'string', example: 'Rain' },
+                          description: { type: 'string', example: 'słabe opady deszczu' },
+                          icon: { type: 'string', example: '10d' },
+                        },
+                      },
+                    },
+                    updatedAt: {
+                      type: 'string',
+                      format: 'date-time',
+                      example: '2026-11-27T12:00:00.000Z',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { description: 'Brak autoryzacji' },
+          500: { description: 'Błąd pobierania prognozy pogody' },
         },
       },
     },
