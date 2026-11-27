@@ -148,4 +148,127 @@ describe('WeatherService', () => {
       'OpenWeatherMap API responded with status 401',
     );
   });
+
+  describe('getWeatherForecast', () => {
+    const mockForecastResponse = {
+      city: {
+        name: 'Warszawa',
+        country: 'PL',
+      },
+      list: [
+        {
+          dt: 1700010800,
+          dt_txt: '2026-11-27 15:00:00',
+          main: {
+            temp: 15.44,
+            feels_like: 14.12,
+            humidity: 58,
+            pressure: 1015,
+          },
+          wind: { speed: 3.5 },
+          pop: 0.35,
+          weather: [
+            {
+              main: 'Rain',
+              description: 'słabe opady deszczu',
+              icon: '10d',
+            },
+          ],
+        },
+      ],
+    };
+
+    it('should fetch and map forecast items from OpenWeatherMap Forecast API', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockForecastResponse),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const result = await service.getWeatherForecast('pl');
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const calledUrl = String(fetchMock.mock.calls[0][0]);
+      expect(calledUrl).toContain('/data/2.5/forecast');
+      expect(calledUrl).toContain('q=Warszawa%2CPL');
+      expect(calledUrl).toContain('appid=test_api_key');
+
+      expect(result).toEqual({
+        city: 'Warszawa',
+        country: 'PL',
+        items: [
+          {
+            timestamp: 1700010800,
+            dateTime: '2026-11-27 15:00:00',
+            temperature: 15.4,
+            feelsLike: 14.1,
+            humidity: 58,
+            pressure: 1015,
+            windSpeed: 12.6,
+            pop: 35,
+            condition: 'Rain',
+            description: 'słabe opady deszczu',
+            icon: '10d',
+          },
+        ],
+        updatedAt: '2026-11-27T12:00:00.000Z',
+      });
+    });
+
+    it('should return cached forecast within 30 minutes TTL without re-fetching', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockForecastResponse),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const first = await service.getWeatherForecast();
+      vi.advanceTimersByTime(15 * 60 * 1000);
+      const second = await service.getWeatherForecast();
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(second).toEqual(first);
+    });
+
+    it('should re-fetch forecast after 30 minutes TTL expires', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue(mockForecastResponse),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      await service.getWeatherForecast();
+      vi.advanceTimersByTime(30 * 60 * 1000 + 1);
+      await service.getWeatherForecast();
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('should throw error when OPENWEATHERMAP_API_KEY is not configured', async () => {
+      config.openWeatherMapApiKey = undefined;
+
+      await expect(service.getWeatherForecast()).rejects.toThrow(
+        'OPENWEATHERMAP_API_KEY is not configured',
+      );
+    });
+
+    it('should throw error when DEFAULT_CITY is not configured', async () => {
+      config.defaultCity = undefined;
+
+      await expect(service.getWeatherForecast()).rejects.toThrow('DEFAULT_CITY is not configured');
+    });
+
+    it('should throw error when OpenWeatherMap Forecast API responds with non-OK status', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 502,
+        text: vi.fn().mockResolvedValue('Bad Gateway'),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      await expect(service.getWeatherForecast()).rejects.toThrow(
+        'OpenWeatherMap Forecast API responded with status 502',
+      );
+    });
+  });
 });

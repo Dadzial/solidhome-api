@@ -4,6 +4,7 @@ import request from 'supertest';
 import WeatherController from '../../lib/controllers/weather.controller';
 import WeatherService from '../../lib/modules/services/air/weather.service';
 import { IWeather } from '../../lib/modules/models/air/weather.model';
+import { IWeatherForecast } from '../../lib/modules/models/air/weather-forecast.model';
 import { createTestUser, TestUserContext } from '../helpers/auth.helper';
 
 describe('WeatherController (Integration)', () => {
@@ -41,6 +42,7 @@ describe('WeatherController (Integration)', () => {
 
     mockWeatherService = {
       getCurrentWeather: vi.fn(),
+      getWeatherForecast: vi.fn(),
     };
 
     weatherController = new WeatherController(mockWeatherService as WeatherService);
@@ -76,6 +78,59 @@ describe('WeatherController (Integration)', () => {
 
       expect(response.status).toBe(500);
       expect(response.body.message).toBe('Failed to fetch weather data');
+    });
+  });
+
+  describe('GET /api/weather/forecast', () => {
+    const sampleForecast: IWeatherForecast = {
+      city: 'Warszawa',
+      country: 'PL',
+      items: [
+        {
+          timestamp: 1700010800,
+          dateTime: '2026-11-27 15:00:00',
+          temperature: 15.4,
+          feelsLike: 14.1,
+          humidity: 58,
+          pressure: 1015,
+          windSpeed: 12.6,
+          pop: 35,
+          condition: 'Rain',
+          description: 'słabe opady deszczu',
+          icon: '10d',
+        },
+      ],
+      updatedAt: '2026-11-27T12:00:00.000Z',
+    };
+
+    it('should return 401 Unauthorized when no token is provided', async () => {
+      const response = await request(app).get('/api/weather/forecast');
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 200 OK with weather forecast when authenticated', async () => {
+      vi.mocked(mockWeatherService.getWeatherForecast!).mockResolvedValueOnce(sampleForecast);
+
+      const response = await request(app)
+        .get('/api/weather/forecast')
+        .set('Authorization', `Bearer ${testUserCtx.token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(sampleForecast);
+      expect(mockWeatherService.getWeatherForecast).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return 500 Internal Server Error when WeatherService throws', async () => {
+      vi.mocked(mockWeatherService.getWeatherForecast!).mockRejectedValueOnce(
+        new Error('OpenWeatherMap Forecast API responded with status 500'),
+      );
+
+      const response = await request(app)
+        .get('/api/weather/forecast')
+        .set('Authorization', `Bearer ${testUserCtx.token}`);
+
+      expect(response.status).toBe(500);
+      expect(response.body.message).toBe('Failed to fetch weather forecast');
     });
   });
 });

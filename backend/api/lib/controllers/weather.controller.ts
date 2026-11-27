@@ -31,6 +31,7 @@ class WeatherController implements Controller {
    */
   private initializeRoutes(): void {
     this.router.get(`${this.path}/current`, auth, this.getWeatherData);
+    this.router.get(`${this.path}/forecast`, auth, this.getWeatherForecast);
   }
 
   /**
@@ -48,6 +49,24 @@ class WeatherController implements Controller {
     } catch (error) {
       logger.error(`Error fetching weather data: ${error}`);
       res.status(500).json({ message: 'Failed to fetch weather data' });
+    }
+  };
+
+  /**
+   * Pobiera prognozę pogody.
+   * @route GET /api/weather/forecast
+   * @access Private
+   * @param _req - Obiekt żądania HTTP.
+   * @param res - Obiekt odpowiedzi HTTP.
+   * @returns {void}
+   */
+  private getWeatherForecast = async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const weatherForecast = await this.weatherService.getWeatherForecast();
+      res.status(200).json(weatherForecast);
+    } catch (error) {
+      logger.error(`Error fetching weather forecast: ${error}`);
+      res.status(500).json({ message: 'Failed to fetch weather forecast' });
     }
   };
 }
