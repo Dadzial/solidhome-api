@@ -1,11 +1,25 @@
-import { Types } from 'mongoose';
-
 /**
  * @interface IWeather
  * @description Model danych reprezentujący dane pogodowe.
  * Definiuje strukturę typów TypeScript wykorzystywaną przez schemat Mongoose (WeatherSchema).
  */
-// TODO: Zaimplementować interfejs IWeather
 export interface IWeather {
-  _id?: Types.ObjectId;
+  city: string;
+  country: string;
+  temperature: number;
+  feelsLike: number;
+  tempMin: number;
+  tempMax: number;
+  humidity: number;
+  pressure: number;
+  windSpeed: number;
+  windDeg: number;
+  clouds: number;
+  visibility: number;
+  condition: string;
+  description: string;
+  icon: string;
+  sunrise: number;
+  sunset: number;
+  updatedAt: string;
 }
