@@ -184,6 +184,7 @@ describe('WeatherService', () => {
       expect(calledUrl).toContain('/data/2.5/forecast');
       expect(calledUrl).toContain('q=Warszawa%2CPL');
       expect(calledUrl).toContain('appid=test_api_key');
+      expect(calledUrl).toContain('cnt=4');
 
       expect(result).toEqual({
         items: [

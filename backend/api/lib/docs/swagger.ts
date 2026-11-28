@@ -787,7 +787,7 @@ export const swaggerDocument = {
     '/api/weather/forecast': {
       get: {
         tags: ['Pogoda (Weather)'],
-        summary: 'Pobiera 5-dniową prognozę pogody co 3 godziny (z cache 30 min)',
+        summary: 'Pobiera prognozę pogody na 4 najbliższe przedziały co 3 godziny (z cache 30 min)',
         responses: {
           200: {
             description: 'Prognoza pogody z OpenWeatherMap',
