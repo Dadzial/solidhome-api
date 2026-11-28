@@ -114,6 +114,7 @@ class WeatherService {
     url.searchParams.set('appid', apiKey);
     url.searchParams.set('units', 'metric');
     url.searchParams.set('lang', lang);
+    url.searchParams.set('cnt', '4');
 
     const response = await fetch(url.toString());
 
