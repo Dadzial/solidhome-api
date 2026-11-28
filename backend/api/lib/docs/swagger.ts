@@ -759,23 +759,15 @@ export const swaggerDocument = {
                 schema: {
                   type: 'object',
                   properties: {
-                    city: { type: 'string', example: 'Warszawa' },
-                    country: { type: 'string', example: 'PL' },
                     temperature: { type: 'number', example: 14.3 },
                     feelsLike: { type: 'number', example: 12.8 },
-                    tempMin: { type: 'number', example: 11.1 },
-                    tempMax: { type: 'number', example: 16.6 },
                     humidity: { type: 'number', example: 62 },
                     pressure: { type: 'number', example: 1016 },
                     windSpeed: { type: 'number', example: 14.4 },
-                    windDeg: { type: 'number', example: 210 },
                     clouds: { type: 'number', example: 40 },
-                    visibility: { type: 'number', example: 10000 },
                     condition: { type: 'string', example: 'Clouds' },
                     description: { type: 'string', example: 'zachmurzenie umiarkowane' },
                     icon: { type: 'string', example: '03d' },
-                    sunrise: { type: 'integer', example: 1700000000 },
-                    sunset: { type: 'integer', example: 1700030000 },
                     updatedAt: {
                       type: 'string',
                       format: 'date-time',
@@ -804,8 +796,6 @@ export const swaggerDocument = {
                 schema: {
                   type: 'object',
                   properties: {
-                    city: { type: 'string', example: 'Warszawa' },
-                    country: { type: 'string', example: 'PL' },
                     items: {
                       type: 'array',
                       items: {
@@ -814,13 +804,7 @@ export const swaggerDocument = {
                           timestamp: { type: 'integer', example: 1700010800 },
                           dateTime: { type: 'string', example: '2026-11-27 15:00:00' },
                           temperature: { type: 'number', example: 15.4 },
-                          feelsLike: { type: 'number', example: 14.1 },
-                          humidity: { type: 'number', example: 58 },
-                          pressure: { type: 'number', example: 1015 },
-                          windSpeed: { type: 'number', example: 12.6 },
-                          pop: { type: 'integer', example: 35 },
                           condition: { type: 'string', example: 'Rain' },
-                          description: { type: 'string', example: 'słabe opady deszczu' },
                           icon: { type: 'string', example: '10d' },
                         },
                       },

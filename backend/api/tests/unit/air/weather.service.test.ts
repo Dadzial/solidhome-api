@@ -72,23 +72,15 @@ describe('WeatherService', () => {
     expect(calledUrl).toContain('lang=pl');
 
     expect(result).toEqual({
-      city: 'Warszawa',
-      country: 'PL',
       temperature: 14.3,
       feelsLike: 12.8,
-      tempMin: 11.1,
-      tempMax: 16.6,
       humidity: 62,
       pressure: 1016,
       windSpeed: 14.4,
-      windDeg: 210,
       clouds: 40,
-      visibility: 10000,
       condition: 'Clouds',
       description: 'zachmurzenie umiarkowane',
       icon: '03d',
-      sunrise: 1700000000,
-      sunset: 1700030000,
       updatedAt: '2026-11-27T12:00:00.000Z',
     });
   });
@@ -194,20 +186,12 @@ describe('WeatherService', () => {
       expect(calledUrl).toContain('appid=test_api_key');
 
       expect(result).toEqual({
-        city: 'Warszawa',
-        country: 'PL',
         items: [
           {
             timestamp: 1700010800,
             dateTime: '2026-11-27 15:00:00',
             temperature: 15.4,
-            feelsLike: 14.1,
-            humidity: 58,
-            pressure: 1015,
-            windSpeed: 12.6,
-            pop: 35,
             condition: 'Rain',
-            description: 'słabe opady deszczu',
             icon: '10d',
           },
         ],

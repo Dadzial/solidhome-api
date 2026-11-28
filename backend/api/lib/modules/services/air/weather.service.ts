@@ -67,23 +67,15 @@ class WeatherService {
     const rawData = await response.json();
 
     const weather: IWeather = {
-      city: rawData.name,
-      country: rawData.sys?.country ?? '',
       temperature: Number(rawData.main.temp.toFixed(1)),
       feelsLike: Number(rawData.main.feels_like.toFixed(1)),
-      tempMin: Number(rawData.main.temp_min.toFixed(1)),
-      tempMax: Number(rawData.main.temp_max.toFixed(1)),
       humidity: rawData.main.humidity,
       pressure: rawData.main.pressure,
       windSpeed: Number(((rawData.wind?.speed ?? 0) * 3.6).toFixed(1)),
-      windDeg: rawData.wind?.deg ?? 0,
       clouds: rawData.clouds?.all ?? 0,
-      visibility: rawData.visibility ?? 0,
       condition: rawData.weather?.[0]?.main ?? '',
       description: rawData.weather?.[0]?.description ?? '',
       icon: rawData.weather?.[0]?.icon ?? '',
-      sunrise: rawData.sys?.sunrise ?? 0,
-      sunset: rawData.sys?.sunset ?? 0,
       updatedAt: new Date().toISOString(),
     };
 
@@ -137,19 +129,11 @@ class WeatherService {
       timestamp: item.dt,
       dateTime: item.dt_txt,
       temperature: Number(item.main.temp.toFixed(1)),
-      feelsLike: Number(item.main.feels_like.toFixed(1)),
-      humidity: item.main.humidity,
-      pressure: item.main.pressure,
-      windSpeed: Number(((item.wind?.speed ?? 0) * 3.6).toFixed(1)),
-      pop: Math.round((item.pop ?? 0) * 100),
       condition: item.weather?.[0]?.main ?? '',
-      description: item.weather?.[0]?.description ?? '',
       icon: item.weather?.[0]?.icon ?? '',
     }));
 
     const forecast: IWeatherForecast = {
-      city: rawData.city?.name ?? defaultCity,
-      country: rawData.city?.country ?? '',
       items,
       updatedAt: new Date().toISOString(),
     };
